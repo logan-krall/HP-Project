@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Web
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HP_Analytics_Project", "HP_Analytics_Project\HP_Analytics_Project.csproj", "{63B977A6-F219-4D9F-9084-C51E425E405C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{63B977A6-F219-4D9F-9084-C51E425E405C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63B977A6-F219-4D9F-9084-C51E425E405C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63B977A6-F219-4D9F-9084-C51E425E405C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63B977A6-F219-4D9F-9084-C51E425E405C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
