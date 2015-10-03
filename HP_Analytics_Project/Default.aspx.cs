@@ -45,7 +45,16 @@ namespace HP_Analytics_Project
                         File.Delete(path + FileUpload1.FileName);
                     }
 
-                    FileUpload1.PostedFile.SaveAs(path + FileUpload1.FileName);
+                    try
+                    {
+                        FileUpload1.PostedFile.SaveAs(path + FileUpload1.FileName);
+                        UploadStatusLabel.Text = "File uploaded successfully.";
+                    }
+                    catch (Exception err)
+                    {
+                        Console.WriteLine("{0} Exception caught.", err);
+                        UploadStatusLabel.Text = "File could not be uploaded.";
+                    }
 
                     if (File.Exists(path + FileUpload1.FileName))
                     {
