@@ -20,7 +20,10 @@ namespace HP_Analytics_Project
             if (IsPostBack)
             {
                 Boolean fileOK = false;
-                String path = Server.MapPath("~/Uploads/");
+
+                string path = System.IO.Path.GetTempPath();
+                //String path = Server.MapPath("~/Uploads/");
+                
                 if (FileUpload1.HasFile)
                 {
                     string[] allowedExtensions = { ".xls", ".xlsx", ".csv" };
