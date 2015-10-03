@@ -52,8 +52,7 @@ namespace HP_Analytics_Project
                     }
                     catch (Exception err)
                     {
-                        Console.WriteLine("{0} Exception caught.", err);
-                        UploadStatusLabel.Text = "File could not be uploaded.";
+                        UploadStatusLabel.Text = "File could not be uploaded because " + err + " exception caught.";
                     }
 
                     if (File.Exists(path + FileUpload1.FileName))
