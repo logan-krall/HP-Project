@@ -21,13 +21,16 @@ namespace HP_Analytics_Project
                   "~/Scripts/WebForms/TreeView.js",
                   "~/Scripts/WebForms/WebParts.js"));
 
-            bundles.Add(new ScriptBundle("~/bundles/jqueryui").Include(
-                  "~/Scripts/jquery-ui-{version}.js"));
+            bundles.Add(new ScriptBundle("~/bundles/bootstrap").Include(
+              "~/Scripts/bootstrap.js",
+              "~/Scripts/bootstrap.mins.js"));
 
-            bundles.Add(new StyleBundle("~/Content/themes/base/css").Include(
-                  "~/Content/themes/base/jquery.ui.core.css",
-                  "~/Content/themes/base/jquery.ui.accordion.css",
-                  "~/Content/themes/base/jquery.ui.theme.css"));
+            bundles.Add(new ScriptBundle("~/bundles/jQuery").Include(
+                  "~/Scripts/jquery-2.1.4.js",
+                  "~/Scripts/jquery-2.1.4.min.js"));
+
+            bundles.Add(new ScriptBundle("~/bundles/jqueryui").Include(
+                  "~/Scripts/jquery-ui-1.11.4.js"));
 
             bundles.Add(new ScriptBundle("~/bundles/MsAjaxJs").Include(
                 "~/Scripts/WebForms/MsAjax/MicrosoftAjax.js",

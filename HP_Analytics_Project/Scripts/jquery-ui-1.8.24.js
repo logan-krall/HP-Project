@@ -5298,7 +5298,7 @@ $.widget( "ui.accordion", {
 	options: {
 		active: 0,
 		animated: "slide",
-		autoHeight: true,
+		autoHeight: false,
 		clearStyle: false,
 		collapsible: false,
 		event: "click",

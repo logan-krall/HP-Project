@@ -78,11 +78,17 @@ namespace HP_Analytics_Project.Images
                 //missing value header row
                 TableRow hRow2 = new TableRow();
                 TableRow hRow3 = new TableRow();
+                
+                ViewState["missing"] = false;
 
                 TableCell missNCellH = new TableCell();
                 TableCell missVCellH = new TableCell();
                 missNCellH.Text = "Name of Column";
                 missVCellH.Text = "Rows Missing";
+                missNCellH.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                missNCellH.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                missVCellH.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                missVCellH.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
                 hRow2.Cells.Add(missNCellH);
                 hRow2.Cells.Add(missVCellH);
 
@@ -160,17 +166,36 @@ namespace HP_Analytics_Project.Images
                             depend1.Font.Size = System.Web.UI.WebControls.FontUnit.XSmall;
                             ListItem ind = new ListItem();
                             ListItem dep = new ListItem();
+                            ListItem ign = new ListItem();
                             ind.Text = "  Independent";
                             dep.Text = "  Dependent";
-                            ind.Attributes.Remove("font-weight");
+                            ign.Text = "  Ignore";
+                            //ind.Attributes.Remove("font-weight");
                             ind.Value = "i";
                             dep.Value = "d";
+                            ign.Value = "0";
                             depend1.Items.Add(ind);
                             depend1.Items.Add(dep);
+                            depend1.Items.Add(ign);
                             dependCell.Controls.Add(depend1);
 
+                            //Block for calculating Cardinality.
                             DataTable catVals = dt.DefaultView.ToTable(true, dc.ColumnName.ToString());
                             uniqueVals = catVals.Rows.Count.ToString();
+                            if (catVals.Rows.Count == 2)
+                            {
+                                List<string> logits;
+                                if (ViewState["logits"] == null)
+                                {
+                                    logits = new List<string>();
+                                    ViewState["logits"] = logits;
+                                }
+                                else
+                                {
+                                    logits = (List<string>) ViewState["logits"];
+                                }
+                                logits.Add(dc.ColumnName.ToString());
+                            }
 
                             if (dc.DataType.ToString() == typeof(char).ToString() || dc.DataType.ToString() == typeof(string).ToString())
                             {
@@ -178,7 +203,7 @@ namespace HP_Analytics_Project.Images
                                 minCell.Text = "*";
                                 maxCell.Text = "*";
                                 stdCell.Text = "*";
-                                varType = "String";
+                                varType = "Nominal";
                             }
                             else
                             {
@@ -216,7 +241,23 @@ namespace HP_Analytics_Project.Images
                             nameCell.Text = varName;
                             cardCell.Text = uniqueVals;                            
                             varTCell.Text = varType;
-                            
+
+                            dependCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                            dependCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                            nameCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                            nameCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                            varTCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                            varTCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                            meanCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                            meanCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                            minCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                            minCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                            maxCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                            maxCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                            stdCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                            stdCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                            cardCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                            cardCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
                             tRow.Cells.Add(dependCell);
                             tRow.Cells.Add(nameCell);
                             tRow.Cells.Add(varTCell);
@@ -238,6 +279,7 @@ namespace HP_Analytics_Project.Images
 
                             if (missingV > 0)
                             {
+                                ViewState["missing"] = true;
                                 if (Table2.Rows[1].Cells[0].Text == "-")
                                 {
                                     Table2.Rows.Remove(Table2.Rows[1]);
@@ -247,6 +289,10 @@ namespace HP_Analytics_Project.Images
                                 TableCell missNCell = new TableCell();
                                 missVCell.Text = missingV.ToString();
                                 missNCell.Text = nameCell.Text;
+                                missNCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                                missNCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                                missVCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                                missVCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
                                 missRow.Cells.Add(missNCell);
                                 missRow.Cells.Add(missVCell);
 
@@ -278,7 +324,7 @@ namespace HP_Analytics_Project.Images
             {
                 if (kp.Value == "i")
                 {   main.Add(kp.Key); }
-                else
+                else if (kp.Value == "d")
                 {   dep.Add(kp.Key); }
             }
             main.Sort();
@@ -297,10 +343,9 @@ namespace HP_Analytics_Project.Images
             {
                 TableCell tcH1 = new TableCell();
                 tcH1.Text = v;
-                tcH1.HorizontalAlign = HorizontalAlign.Center;
                 if (depDic[v] == "i")
                 {   tcH1.Font.Bold = true; }
-
+                tcH1.HorizontalAlign = HorizontalAlign.Center;
                 tcH1.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
                 tcH1.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
                 trH.Cells.Add(tcH1);                
@@ -332,6 +377,54 @@ namespace HP_Analytics_Project.Images
                 Table4.Rows.Add(tr);
             }
             ViewState["dict"] = depDic;
+        }
+
+        public bool Depend_Check()
+        {
+            Dictionary<string, string> depDic = new Dictionary<string, string>();
+            if (ViewState["dict"] != null)
+            { depDic = (Dictionary<string, string>) ViewState["dict"]; }
+            if ( depDic.Count > 0 && depDic.Values.Contains("i") && depDic.Values.Contains("d") )
+            {   
+                return true; 
+            }
+            return false; 
+        }
+
+        public bool Multi_Reg_Check()
+        {
+            Dictionary<string, string> depDic = new Dictionary<string, string>();
+            if (ViewState["dict"] != null)
+            { depDic = (Dictionary<string, string>)ViewState["dict"]; }
+            if (depDic.Count > 0 && depDic.Values.Contains("d") && depDic.Count(D=>D.Value.Contains("i")) >= 2)
+            { 
+                return true; 
+            }
+            return false; 
+        }
+
+        public bool Logit_Reg_Check()
+        {
+            Dictionary<string, string> depDic = new Dictionary<string, string>();
+            if (ViewState["dict"] != null)
+            { depDic = (Dictionary<string, string>)ViewState["dict"]; }
+            if (depDic.Count > 0 && depDic.Values.Contains("i") && depDic.Values.Contains("d"))
+            {
+                foreach (KeyValuePair<string, string> kp in depDic.Where(D => D.Value.Contains("d")))
+                {
+                    List<string> logits = (List<string>) ViewState["logits"];
+                    if (logits != null && logits.Count > 0 && logits.Contains(kp.Key))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public void Model_Options()
+        {
+
         }
     }
 }

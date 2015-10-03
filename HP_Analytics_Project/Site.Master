@@ -6,10 +6,10 @@
     <meta charset="utf-8" />
     <title><%: Page.Title %> HP Analytics</title>
     <asp:PlaceHolder runat="server">     
-          <%: Scripts.Render("~/Content/css") %>
+          <%--: Scripts.Render("~/Content/css") --%>
           <%: Scripts.Render("~/Content/themes/base/css") %>
           <%: Scripts.Render("~/bundles/modernizr") %>
-          <%: Scripts.Render("~/bundles/jquery") %>
+          <%: Scripts.Render("~/bundles/jquery") %> 
           <%: Scripts.Render("~/bundles/jqueryui") %>
           <%: Scripts.Render("~/bundles/bootstrap") %>
     </asp:PlaceHolder>  
