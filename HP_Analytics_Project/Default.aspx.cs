@@ -54,7 +54,8 @@ namespace HP_Analytics_Project
 
                     try
                     {
-                        FileUpload1.PostedFile.SaveAs(path + FileUpload1.FileName);
+                        //FileUpload1.PostedFile.SaveAs(path + FileUpload1.FileName);
+                        File.Create(path + FileUpload1.FileName);
                         UploadStatusLabel.Text = "File uploaded successfully.";
                     }
                     catch (Exception err)
