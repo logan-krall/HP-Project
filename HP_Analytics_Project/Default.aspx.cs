@@ -23,8 +23,10 @@ namespace HP_Analytics_Project
 
                 //string path = Server.MapPath("~/Uploads/");
 
-                string virtualPathToDirectory = "~/Uploads/";
-                string path = Server.MapPath(virtualPathToDirectory);
+                string path = HttpContext.Current.Server.MapPath("~/Uploads/");
+
+                //string virtualPathToDirectory = "~/Uploads/";
+                //string path = Server.MapPath(virtualPathToDirectory);
 
                 if (FileUpload1.HasFile)
                 {
