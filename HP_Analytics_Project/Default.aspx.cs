@@ -21,9 +21,11 @@ namespace HP_Analytics_Project
             {
                 Boolean fileOK = false;
 
-                string path = System.IO.Path.GetTempPath();
-                //String path = Server.MapPath("~/Uploads/");
-                
+                //string path = Server.MapPath("~/Uploads/");
+
+                string virtualPathToDirectory = "~/Uploads/";
+                string path = Server.MapPath(virtualPathToDirectory);
+
                 if (FileUpload1.HasFile)
                 {
                     string[] allowedExtensions = { ".xls", ".xlsx", ".csv" };
