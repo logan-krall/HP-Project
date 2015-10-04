@@ -53,19 +53,19 @@ namespace HP_Analytics_Project
                         File.Delete(path + FileUpload1.FileName);
                     }
 
-                    try
-                    {
+                    //try
+                    //{
                         FileUpload1.PostedFile.SaveAs(path + FileUpload1.FileName);
 
 
                         //LocalResources lR = RoleEnvironment.GetLocalResource("");
 
-                        UploadStatusLabel.Text = "File uploaded successfully.";
-                    }
-                    catch (Exception err)
-                    {
-                        UploadStatusLabel.Text = "File could not be uploaded because " + err + " exception caught.";
-                    }
+                        // UploadStatusLabel.Text = "File uploaded successfully.";
+                    //}
+                        //catch (Exception err)
+                    //{
+                        // UploadStatusLabel.Text = "File could not be uploaded because " + err + " exception caught.";
+                        //}
 
                     if (File.Exists(path + FileUpload1.FileName))
                     {
