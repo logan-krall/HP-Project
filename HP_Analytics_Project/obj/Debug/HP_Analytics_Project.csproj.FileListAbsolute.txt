@@ -79,3 +79,6 @@ C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Spire.XLS.dl
 C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Spire.Common.xml
 C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Spire.Pdf.xml
 C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Spire.XLS.xml
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Excel.dll
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\ICSharpCode.SharpZipLib.dll
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Excel.pdb

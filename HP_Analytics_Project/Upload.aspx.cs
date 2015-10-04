@@ -2,7 +2,8 @@
 using System.Data;
 
 using System.Data.OleDb;
-using Spire.Xls;
+//using Spire.Xls;
+using Excel;
 
 using System.Xml.Serialization;
 using System.Collections;
@@ -20,24 +21,13 @@ namespace HP_Analytics_Project.Images
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            
             string fullName = (string)(Session["name"]);
             string extension = System.IO.Path.GetExtension(fullName).ToLower();
             string connectionString = string.Empty;
             DataSet myDataSet = new DataSet();
             DataTable myDataTable = new DataTable();
 
-
-            //Spire version
-            Workbook wrkbook = new Workbook();
-            wrkbook.LoadFromFile(fullName);
-
-            //Worksheet wrksheet = wrkbook.Worksheets[0];
-            //myDataTable = wrksheet.ExportDataTable();
-
-
-            /*
-             * 
+            
             //Olebdb version
             OleDbCommand cmd = new OleDbCommand();
 
@@ -61,8 +51,7 @@ namespace HP_Analytics_Project.Images
 
             using (OleDbConnection conn = new OleDbConnection(connectionString))
             {
-                /*
-                 *
+                
                 conn.Open();
                 cmd.Connection = conn;
                 //Get all sheets/tables from the file
@@ -88,24 +77,32 @@ namespace HP_Analytics_Project.Images
                 }
                 cmd = null;
                 conn.Close();
+
                 //File.Delete(fullName);
-                *
+                
+                 
+                
+                /*
+                FileStream stream = File.Open(fullName, FileMode.Open, FileAccess.Read);
+                IExcelDataReader reader = null;
+
+                if (extension == ".xls")
+                {
+                    //Reading from a binary Excel file ('97-2003 format; *.xls)
+                    reader = ExcelReaderFactory.CreateBinaryReader(stream);
+                }
+                else if (extension == ".xlsx")
+                {
+                    //Reading from a OpenXml Excel file (2007 format; *.xlsx)
+                    reader = ExcelReaderFactory.CreateOpenXmlReader(stream);
+                }
+
+                myDataSet = reader.AsDataSet();
+                reader.Close();
+                
                 */
 
-                foreach (Worksheet ws in wrkbook.Worksheets)
-                {
-                    //string sheetName = dr["TABLE_NAME"].ToString();
-                    string sheetName = ws.Name;
 
-                    DataTable dt = new DataTable();
-                    dt = ws.ExportDataTable();
-                    dt.TableName = sheetName;
-
-                    if (ws != null && !(ws.IsEmpty))
-                    {
-                        myDataSet.Tables.Add(dt);
-                    }
-                }
 
 
 
@@ -338,7 +335,7 @@ namespace HP_Analytics_Project.Images
                         }
                     }
                 }
-            //}
+            }
         }
 
         void Radio_Changed(object sender, EventArgs e, string col)
