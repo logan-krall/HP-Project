@@ -6,6 +6,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.IO;
 
+
 namespace HP_Analytics_Project
 {
     public partial class _Default : Page
@@ -21,9 +22,9 @@ namespace HP_Analytics_Project
             {
                 Boolean fileOK = false;
 
-                //string path = Server.MapPath("~/Uploads/");
+                string path = Server.MapPath("~//Uploads/");
 
-                string path = HttpContext.Current.Server.MapPath("~//Uploads/");
+                //string path = HttpContext.Current.Server.MapPath("~//Uploads/");
 
                 //string virtualPathToDirectory = "~/Uploads/";
                 //string path = Server.MapPath(virtualPathToDirectory);
@@ -54,8 +55,11 @@ namespace HP_Analytics_Project
 
                     try
                     {
-                        //FileUpload1.PostedFile.SaveAs(path + FileUpload1.FileName);
-                        File.Create(path + FileUpload1.FileName);
+                        FileUpload1.PostedFile.SaveAs(path + FileUpload1.FileName);
+
+
+                        //LocalResources lR = RoleEnvironment.GetLocalResource("");
+
                         UploadStatusLabel.Text = "File uploaded successfully.";
                     }
                     catch (Exception err)
