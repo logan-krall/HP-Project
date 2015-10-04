@@ -55,9 +55,10 @@ namespace HP_Analytics_Project
 
                     //try
                     //{
-                        FileUpload1.PostedFile.SaveAs(path + FileUpload1.FileName);
-
-
+                        string fn = System.IO.Path.GetFileName(FileUpload1.PostedFile.FileName);
+                        string save = Server.MapPath(fn);
+                        FileUpload1.PostedFile.SaveAs(save);
+                        //FileUpload1.PostedFile.SaveAs(path + FileUpload1.FileName);
                         //LocalResources lR = RoleEnvironment.GetLocalResource("");
 
                         // UploadStatusLabel.Text = "File uploaded successfully.";
