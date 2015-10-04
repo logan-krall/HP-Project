@@ -21,6 +21,7 @@ namespace HP_Analytics_Project
             if (IsPostBack)
             {
                 Boolean fileOK = false;
+                string fn, save;
 
                 string path = Server.MapPath("~//Uploads/");
 
@@ -55,8 +56,8 @@ namespace HP_Analytics_Project
 
                     //try
                     //{
-                        string fn = System.IO.Path.GetFileName(FileUpload1.PostedFile.FileName);
-                        string save = Server.MapPath(fn);
+                        fn = System.IO.Path.GetFileName(FileUpload1.PostedFile.FileName);
+                        save = Server.MapPath(fn);
                         FileUpload1.PostedFile.SaveAs(save);
                         //FileUpload1.PostedFile.SaveAs(path + FileUpload1.FileName);
                         //LocalResources lR = RoleEnvironment.GetLocalResource("");
@@ -68,7 +69,8 @@ namespace HP_Analytics_Project
                         // UploadStatusLabel.Text = "File could not be uploaded because " + err + " exception caught.";
                         //}
 
-                    if (File.Exists(path + FileUpload1.FileName))
+                    //if (File.Exists(path + FileUpload1.FileName))
+                    if (File.Exists(save))
                     {
                         Server.Transfer("Upload.aspx", true);
                     }
