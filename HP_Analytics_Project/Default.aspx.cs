@@ -25,6 +25,9 @@ namespace HP_Analytics_Project
 
                 string path = Server.MapPath("~//Uploads/");
 
+                fn = System.IO.Path.GetFileName(FileUpload1.PostedFile.FileName);
+                save = Server.MapPath(fn);
+
                 //string path = HttpContext.Current.Server.MapPath("~//Uploads/");
 
                 //string virtualPathToDirectory = "~/Uploads/";
@@ -55,8 +58,6 @@ namespace HP_Analytics_Project
 
                     try
                     {
-                        fn = System.IO.Path.GetFileName(FileUpload1.PostedFile.FileName);
-                        save = Server.MapPath(fn);
                         FileUpload1.PostedFile.SaveAs(save);
                         Session["name"] = save;
                         //FileUpload1.PostedFile.SaveAs(path + FileUpload1.FileName);

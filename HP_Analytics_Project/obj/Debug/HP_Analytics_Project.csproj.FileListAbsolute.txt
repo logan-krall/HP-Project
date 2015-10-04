@@ -72,3 +72,10 @@ C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Microsoft.As
 C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\obj\Debug\HP_Analytics_Project.csprojResolveAssemblyReference.cache
 C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\obj\Debug\HP_Analytics_Project.dll
 C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\obj\Debug\HP_Analytics_Project.pdb
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Spire.Common.dll
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Spire.License.dll
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Spire.Pdf.dll
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Spire.XLS.dll
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Spire.Common.xml
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Spire.Pdf.xml
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Spire.XLS.xml

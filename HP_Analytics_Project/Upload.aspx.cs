@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Data;
+
 using System.Data.OleDb;
+using Spire.Xls;
+
 using System.Xml.Serialization;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,9 +24,22 @@ namespace HP_Analytics_Project.Images
             string fullName = (string)(Session["name"]);
             string extension = System.IO.Path.GetExtension(fullName).ToLower();
             string connectionString = string.Empty;
-            OleDbCommand cmd = new OleDbCommand();
             DataSet myDataSet = new DataSet();
             DataTable myDataTable = new DataTable();
+
+
+            //Spire version
+            Workbook wrkbook = new Workbook();
+            wrkbook.LoadFromFile(fullName);
+
+            //Worksheet wrksheet = wrkbook.Worksheets[0];
+            //myDataTable = wrksheet.ExportDataTable();
+
+
+            /*
+             * 
+            //Olebdb version
+            OleDbCommand cmd = new OleDbCommand();
 
             if (extension == ".xls")
             {
@@ -45,6 +61,8 @@ namespace HP_Analytics_Project.Images
 
             using (OleDbConnection conn = new OleDbConnection(connectionString))
             {
+                /*
+                 *
                 conn.Open();
                 cmd.Connection = conn;
                 //Get all sheets/tables from the file
@@ -71,6 +89,25 @@ namespace HP_Analytics_Project.Images
                 cmd = null;
                 conn.Close();
                 //File.Delete(fullName);
+                *
+                */
+
+                foreach (Worksheet ws in wrkbook.Worksheets)
+                {
+                    //string sheetName = dr["TABLE_NAME"].ToString();
+                    string sheetName = ws.Name;
+
+                    DataTable dt = new DataTable();
+                    dt = ws.ExportDataTable();
+                    dt.TableName = sheetName;
+
+                    if (ws != null && !(ws.IsEmpty))
+                    {
+                        myDataSet.Tables.Add(dt);
+                    }
+                }
+
+
 
                 var dataTypes = new[] { typeof(Byte), typeof(SByte), typeof(Decimal), typeof(Double), typeof(Single), typeof(Int16), 
                     typeof(Int32), typeof(Int64), typeof(UInt16), typeof(UInt32), typeof(UInt64), typeof(Char), typeof(string) };
@@ -154,8 +191,8 @@ namespace HP_Analytics_Project.Images
                             TableCell stdCell = new TableCell();
                             TableCell cardCell = new TableCell();
 
-                            RadioButton ind1 = new RadioButton();
-                            RadioButton dep1 = new RadioButton();
+                            System.Web.UI.WebControls.RadioButton ind1 = new System.Web.UI.WebControls.RadioButton();
+                            System.Web.UI.WebControls.RadioButton dep1 = new System.Web.UI.WebControls.RadioButton();
                             RadioButtonList depend1 = new RadioButtonList();
                             
                             //dependency radio list
@@ -301,7 +338,7 @@ namespace HP_Analytics_Project.Images
                         }
                     }
                 }
-            }
+            //}
         }
 
         void Radio_Changed(object sender, EventArgs e, string col)
