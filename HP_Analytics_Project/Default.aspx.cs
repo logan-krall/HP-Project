@@ -29,7 +29,6 @@ namespace HP_Analytics_Project
                 save = Server.MapPath(fn);
 
                 //string path = HttpContext.Current.Server.MapPath("~//Uploads/");
-
                 //string virtualPathToDirectory = "~/Uploads/";
                 //string path = Server.MapPath(virtualPathToDirectory);
 
