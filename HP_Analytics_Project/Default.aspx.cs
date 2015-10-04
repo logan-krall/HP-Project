@@ -21,7 +21,7 @@ namespace HP_Analytics_Project
             if (IsPostBack)
             {
                 Boolean fileOK = false;
-                string fn, save;
+                string fn, save = String.Empty;
 
                 string path = Server.MapPath("~//Uploads/");
 
@@ -39,7 +39,6 @@ namespace HP_Analytics_Project
                         int filesize = FileUpload1.PostedFile.ContentLength;
                         if (filesize < 25000000)
                         {
-                            Session["name"] = FileUpload1.FileName;
                             fileOK = true;
                         }
                         else { UploadStatusLabel.Text = "Your file was not uploaded because it is too large."; }
@@ -54,20 +53,20 @@ namespace HP_Analytics_Project
                         File.Delete(path + FileUpload1.FileName);
                     }
 
-                    //try
-                    //{
+                    try
+                    {
                         fn = System.IO.Path.GetFileName(FileUpload1.PostedFile.FileName);
                         save = Server.MapPath(fn);
                         FileUpload1.PostedFile.SaveAs(save);
+                        Session["name"] = save;
                         //FileUpload1.PostedFile.SaveAs(path + FileUpload1.FileName);
-                        //LocalResources lR = RoleEnvironment.GetLocalResource("");
 
-                        // UploadStatusLabel.Text = "File uploaded successfully.";
-                    //}
-                        //catch (Exception err)
-                    //{
-                        // UploadStatusLabel.Text = "File could not be uploaded because " + err + " exception caught.";
-                        //}
+                         UploadStatusLabel.Text = "File uploaded successfully.";
+                    }
+                        catch (Exception err)
+                    {
+                        UploadStatusLabel.Text = "File could not be uploaded because " + err + " exception caught.";
+                    }
 
                     //if (File.Exists(path + FileUpload1.FileName))
                     if (File.Exists(save))

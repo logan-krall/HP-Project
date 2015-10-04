@@ -17,8 +17,8 @@ namespace HP_Analytics_Project.Images
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            string path = Server.MapPath("~/Uploads/");
-            string fullName = path + (string)(Session["name"]);
+            
+            string fullName = (string)(Session["name"]);
             string extension = System.IO.Path.GetExtension(fullName).ToLower();
             string connectionString = string.Empty;
             OleDbCommand cmd = new OleDbCommand();
