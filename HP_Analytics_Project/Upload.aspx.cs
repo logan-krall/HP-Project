@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Data;
-
 using System.Data.OleDb;
-using Spire.Xls;
+//using Spire.Xls;
 //using Excel;
+using DocumentFormat;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
+
 
 using System.Xml.Serialization;
 using System.Collections;
@@ -27,7 +31,6 @@ namespace HP_Analytics_Project.Images
             DataSet myDataSet = new DataSet();
             DataTable myDataTable = new DataTable();
 
-            
             //Olebdb version
             OleDbCommand cmd = new OleDbCommand();
 
@@ -37,42 +40,84 @@ namespace HP_Analytics_Project.Images
                 connectionString += "Data Source='" + fullName + "';";
                 connectionString += "Extended Properties='Excel 8.0;HDR=YES;IMEX=1;READONLY=TRUE;';";
 
-                
+                OleDbConnection conn = new OleDbConnection(connectionString);
+
+                conn.Open();
+                cmd.Connection = conn;
+                //Get all sheets/tables from the file
+                myDataTable = conn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, null);
+                //Loop through all sheets/tables in the file
+                foreach (DataRow dr in myDataTable.Rows)
+                {
+
+                    string sheetName = dr["TABLE_NAME"].ToString();
+                    //Get all rows from the sheet/table
+                    cmd.CommandText = "SELECT * FROM [" + sheetName + "]";
+
+                    DataTable dt = new DataTable();
+                    dt.TableName = sheetName;
+
+                    OleDbDataAdapter da = new OleDbDataAdapter(cmd);
+                    da.Fill(dt);
+
+                    if (dt != null && (dt.Rows.Count > 1 || dt.Columns.Count > 1))
+                    {
+                        myDataSet.Tables.Add(dt);
+                    }
+                }
+                cmd = null;
+                conn.Close();
             }
             else if (extension == ".xlsx")
             {
-                connectionString = "Provider=Microsoft.ACE.OLEDB.12.0;";
-                connectionString += "Data Source=" + fullName + ";";
-                connectionString += "Extended Properties='Excel 12.0;HDR=YES;IMEX=1;READONLY=TRUE;';";
+
+
+                DocumentFormat.OpenXml.Packaging.SpreadsheetDocument doc = DocumentFormat.OpenXml.Packaging.SpreadsheetDocument.Open(fullName, false);
+
+                //Creates Workbook Part
+                WorkbookPart workbookPart = doc.WorkbookPart;
+                //Creates IEnumerable list of sheets from the document, starting from the first
+                IEnumerable<Sheet> sheets = doc.WorkbookPart.Workbook.GetFirstChild<Sheets>().Elements<Sheet>();
+                //Extracts the ID of the first sheet to a string
+                string relationID = sheets.First().Id.Value;
+                //Finds the first worksheet part by the ID
+                WorksheetPart worksheetPart = (WorksheetPart)doc.WorkbookPart.GetPartById(relationID);
+                //Extracts the first worksheet from the first worksheet part
+                Worksheet worksheet = worksheetPart.Worksheet;
+                //Extracts the first sheet data from the first worksheet
+                SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+                //Creates IEnumerable list of rows from the first sheet data.
+                IEnumerable<Row> rows = sheetData.Descendants<Row>();
+
+                foreach (Cell cell in rows.ElementAt(0))
+                {
+                    DataColumn col = new DataColumn();
+                    myDataTable.Columns.Add(col);
+                }
+
+                foreach (Row row in rows)
+                {
+                    DataRow newRow = myDataTable.NewRow();
+
+                    for (int i = 0; i < row.Descendants<Cell>().Count(); i++)
+                    {
+                        newRow[i] = row.Descendants<Cell>().ElementAt(i).InnerText;
+                    }
+
+                    myDataTable.Rows.Add(newRow);
+                }
+
+                doc.Close();
+                myDataSet.Tables.Add(myDataTable);
+                    
+                
+                
             }
-
-            OleDbConnection conn = new OleDbConnection(connectionString);
-
-            conn.Open();
-            cmd.Connection = conn;
-            //Get all sheets/tables from the file
-            myDataTable = conn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, null);
-            //Loop through all sheets/tables in the file
-            foreach (DataRow dr in myDataTable.Rows)
+            else if (extension == ".csv")
             {
 
-                string sheetName = dr["TABLE_NAME"].ToString();
-                //Get all rows from the sheet/table
-                cmd.CommandText = "SELECT * FROM [" + sheetName + "]";
-
-                DataTable dt = new DataTable();
-                dt.TableName = sheetName;
-
-                OleDbDataAdapter da = new OleDbDataAdapter(cmd);
-                da.Fill(dt);
-
-                if (dt != null && (dt.Rows.Count > 1 || dt.Columns.Count > 1))
-                {
-                    myDataSet.Tables.Add(dt);
-                }
             }
-            cmd = null;
-            conn.Close();
+
 
             /*
             FileStream stream = File.Open(fullName, FileMode.Open, FileAccess.Read);
