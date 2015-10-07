@@ -28,10 +28,6 @@ namespace HP_Analytics_Project
                 fn = System.IO.Path.GetFileName(FileUpload1.PostedFile.FileName);
                 save = Server.MapPath(fn);
 
-                //string path = HttpContext.Current.Server.MapPath("~//Uploads/");
-                //string virtualPathToDirectory = "~/Uploads/";
-                //string path = Server.MapPath(virtualPathToDirectory);
-
                 if (FileUpload1.HasFile)
                 {
                     string[] allowedExtensions = { ".xls", ".xlsx", ".csv" };
@@ -59,7 +55,6 @@ namespace HP_Analytics_Project
                     {
                         FileUpload1.PostedFile.SaveAs(save);
                         Session["name"] = save;
-                        //FileUpload1.PostedFile.SaveAs(path + FileUpload1.FileName);
 
                          UploadStatusLabel.Text = "File uploaded successfully.";
                     }

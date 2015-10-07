@@ -1,22 +1,31 @@
 ﻿using System;
 using System.Data;
 using System.Data.OleDb;
-//using Spire.Xls;
+
+//Spire XLS
+using Spire.Xls;
+
 //using Excel;
+
+//Open XML sdk
 using DocumentFormat;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 
+//Epplus
+using OfficeOpenXml;
 
-using System.Xml.Serialization;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Web;
 using System.Web.UI;
+using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
-using System.IO;
+using System.Xml.Serialization;
 
 
 namespace HP_Analytics_Project.Images
@@ -27,19 +36,22 @@ namespace HP_Analytics_Project.Images
         {
             string fullName = (string)(Session["name"]);
             string extension = System.IO.Path.GetExtension(fullName).ToLower();
-            string connectionString = string.Empty;
+            Session["radioCount"] = 0;
+
+            List<string> cellTypes = new List<string>();
+            
             DataSet myDataSet = new DataSet();
             DataTable myDataTable = new DataTable();
 
-            //Olebdb version
-            OleDbCommand cmd = new OleDbCommand();
-
             if (extension == ".xls")
             {
+                //Olebdb version
+                string connectionString = string.Empty;
                 connectionString = "Provider=Microsoft.Jet.OLEDB.4.0;";
                 connectionString += "Data Source='" + fullName + "';";
                 connectionString += "Extended Properties='Excel 8.0;HDR=YES;IMEX=1;READONLY=TRUE;';";
 
+                OleDbCommand cmd = new OleDbCommand();
                 OleDbConnection conn = new OleDbConnection(connectionString);
 
                 conn.Open();
@@ -70,8 +82,17 @@ namespace HP_Analytics_Project.Images
             }
             else if (extension == ".xlsx")
             {
+                //Spire XLS
+                Spire.Xls.Workbook wrkbook = new Spire.Xls.Workbook();          //create new workbook
+                wrkbook.LoadFromFile(@fullName);                                //load a file
+                Spire.Xls.Worksheet wrksheet = wrkbook.Worksheets[0];           //initialize worksheet
+                
+                myDataTable = wrksheet.ExportDataTable();
+                myDataSet.Tables.Add(myDataTable);
 
-
+                /*
+                 Open XML sdk
+                 
                 DocumentFormat.OpenXml.Packaging.SpreadsheetDocument doc = DocumentFormat.OpenXml.Packaging.SpreadsheetDocument.Open(fullName, false);
 
                 //Creates Workbook Part
@@ -109,98 +130,57 @@ namespace HP_Analytics_Project.Images
 
                 doc.Close();
                 myDataSet.Tables.Add(myDataTable);
-                    
-                
-                
+                */
+                /*
+                 EPPlus
+                 * 
+                DataTable dt = new DataTable();
+                FileInfo fi = new FileInfo(fullName);
+
+                // Check if the file exists
+                if (!fi.Exists)
+                    throw new Exception("File " + fullName + " Does Not Exists");
+
+                using (ExcelPackage xlPackage = new ExcelPackage(fi))
+                {
+                    // get the first worksheet in the workbook
+                    ExcelWorksheet worksheet = xlPackage.Workbook.Worksheets.First();
+
+                    // Fetch the WorkSheet size
+                    ExcelCellAddress startCell = worksheet.Dimension.Start;
+                    ExcelCellAddress endCell = worksheet.Dimension.End;
+
+                    // create all the needed DataColumn
+                    for (int col = startCell.Column; col <= endCell.Column; col++)
+                        dt.Columns.Add(col.ToString());
+
+                    // place all the data into DataTable
+                    for (int row = startCell.Row; row <= endCell.Row; row++)
+                    {
+                        DataRow dr = dt.NewRow();
+                        int x = 0;
+                        for (int col = startCell.Column; col <= endCell.Column; col++)
+                        {
+                            dr[x++] = worksheet.Cells[row, col].Value;
+                        }
+                        dt.Rows.Add(dr);
+                    }
+                }
+                myDataSet.Tables.Add(dt);
+                */
+                                
             }
             else if (extension == ".csv")
             {
 
             }
 
-
-            /*
-            FileStream stream = File.Open(fullName, FileMode.Open, FileAccess.Read);
-            IExcelDataReader reader = null;
-
-            if (extension == ".xls")
-            {
-                //Reading from a binary Excel file ('97-2003 format; *.xls)
-                reader = ExcelReaderFactory.CreateBinaryReader(stream);
-            }
-            else if (extension == ".xlsx")
-            {
-                //Reading from a OpenXml Excel file (2007 format; *.xlsx)
-                reader = ExcelReaderFactory.CreateOpenXmlReader(stream);
-            }
-
-            myDataSet = reader.AsDataSet();
-            reader.Close();
-                
-            */
-
+            Header_Initialization();
 
             var dataTypes = new[] { typeof(Byte), typeof(SByte), typeof(Decimal), typeof(Double), typeof(Single), typeof(Int16), 
                 typeof(Int32), typeof(Int64), typeof(UInt16), typeof(UInt32), typeof(UInt64), typeof(Char), typeof(string) };
 
-            //missing value header row
-            TableRow hRow2 = new TableRow();
-            TableRow hRow3 = new TableRow();
-                
             ViewState["missing"] = false;
-
-            TableCell missNCellH = new TableCell();
-            TableCell missVCellH = new TableCell();
-            missNCellH.Text = "Name of Column";
-            missVCellH.Text = "Rows Missing";
-            missNCellH.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-            missNCellH.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-            missVCellH.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-            missVCellH.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-            hRow2.Cells.Add(missNCellH);
-            hRow2.Cells.Add(missVCellH);
-
-            TableCell filler1 = new TableCell();
-            TableCell filler2 = new TableCell();
-            filler1.Text = "-";
-            filler2.Text = "-";
-            hRow3.Cells.Add(filler1);
-            hRow3.Cells.Add(filler2);
-
-            Table2.Rows.Add(hRow2);
-            Table2.Rows.Add(hRow3);
-
-            //main table header row
-            TableRow hRow = new TableRow();
-
-            TableCell dependH = new TableCell();
-            TableCell nameCellH = new TableCell();
-            TableCell varTCellH = new TableCell();
-            TableCell meanCellH = new TableCell();
-            TableCell medCellH = new TableCell();
-            TableCell moCellH = new TableCell();
-            TableCell stdCellH = new TableCell();
-            TableCell cardCellH = new TableCell();
-
-            dependH.Text = "Variable Dependency";
-            nameCellH.Text = "Name";
-            varTCellH.Text = "Type";
-            meanCellH.Text = "Mean";
-            medCellH.Text = "Min";
-            moCellH.Text = "Max";
-            stdCellH.Text = "Std Dev";
-            cardCellH.Text = "Cardinality";
-
-            hRow.Cells.Add(dependH);;
-            hRow.Cells.Add(nameCellH);
-            hRow.Cells.Add(varTCellH);
-            hRow.Cells.Add(meanCellH);
-            hRow.Cells.Add(medCellH);
-            hRow.Cells.Add(moCellH);
-            hRow.Cells.Add(stdCellH);
-            hRow.Cells.Add(cardCellH);
-
-            Table1.Rows.Add(hRow);
 
             foreach (DataTable dt in myDataSet.Tables)
             {
@@ -222,31 +202,56 @@ namespace HP_Analytics_Project.Images
                         TableCell stdCell = new TableCell();
                         TableCell cardCell = new TableCell();
 
-                        System.Web.UI.WebControls.RadioButton ind1 = new System.Web.UI.WebControls.RadioButton();
-                        System.Web.UI.WebControls.RadioButton dep1 = new System.Web.UI.WebControls.RadioButton();
-                        RadioButtonList depend1 = new RadioButtonList();
-                            
+                        /*
+                        //div for button format
+                        HtmlGenericControl div = new HtmlGenericControl("div");
+                        int num = (int)Session["radioCount"];
+                        int radioNum1 = num * 100;
+                        int radioNum2 = num * 100 + 1;
+                        int radioNum3 = num * 100 + 2;
+
+                        string name = "radio" + num.ToString();
+                        div.Attributes.Add("id", name);
+
+                        string inputText = "<input type='radio' id='" + radioNum1.ToString() + "' name='" + name + "' value = 'i " + dc.ColumnName.ToString() + "' onclick='javascript:__doPostBack(this.id, this.value)'><label for='" + radioNum1.ToString() + "'>Independent</label>" +
+                                           "<input type='radio' id='" + radioNum2.ToString() + "' name='" + name + "' value = 'd " + dc.ColumnName.ToString() + "' onclick='javascript:__doPostBack(this.id, this.value)'><label for='" + radioNum2.ToString() + "'>Dependent</label>" +
+                                           "<input type='radio' id='" + radioNum3.ToString() + "' name='" + name + "' value = '0 " + dc.ColumnName.ToString() + "' onclick='javascript:__doPostBack(this.id, this.value)'><label for='" + radioNum3.ToString() + "'>Ignore</label>";
+
+                        div.InnerHtml = inputText;
+                        
+                                                
+                        //depend1.Controls.Add(div);
+                        //dependCell.Controls.Add(div);
+                        //Session["radioCount"] = ++num;
+                         
+                         * 
+                        */
+
+
                         //dependency radio list
+                        RadioButtonList depend1 = new RadioButtonList();
+                        
                         depend1.ID = dc.ColumnName.ToString();
                         depend1.AutoPostBack = true;
                         depend1.SelectedIndexChanged += new EventHandler((s, e1) => Radio_Changed(s, e1, dc.ColumnName.ToString()));
                         depend1.RepeatDirection = System.Web.UI.WebControls.RepeatDirection.Horizontal;
                         depend1.Font.Size = System.Web.UI.WebControls.FontUnit.XSmall;
+
                         ListItem ind = new ListItem();
                         ListItem dep = new ListItem();
                         ListItem ign = new ListItem();
                         ind.Text = "  Independent";
                         dep.Text = "  Dependent";
                         ign.Text = "  Ignore";
-                        //ind.Attributes.Remove("font-weight");
                         ind.Value = "i";
                         dep.Value = "d";
                         ign.Value = "0";
+
                         depend1.Items.Add(ind);
                         depend1.Items.Add(dep);
                         depend1.Items.Add(ign);
                         dependCell.Controls.Add(depend1);
-
+                        
                         //Block for calculating Cardinality.
                         DataTable catVals = dt.DefaultView.ToTable(true, dc.ColumnName.ToString());
                         uniqueVals = catVals.Rows.Count.ToString();
@@ -272,6 +277,10 @@ namespace HP_Analytics_Project.Images
                             maxCell.Text = "*";
                             stdCell.Text = "*";
                             varType = "Nominal";
+
+                            //int indx = dt.Columns.IndexOf(dc);
+                            //string type = dt.Rows[1][indx].GetType().ToString();
+                            //varType = type;
                         }
                         else
                         {
@@ -367,22 +376,109 @@ namespace HP_Analytics_Project.Images
                             Table2.Rows.Add(missRow);
                         }
                     }
-                }
+                }               
             }
         }
 
+        void Build_Startup_Script()
+        {
+            //javascript for button format
+            ClientScriptManager csm = Page.ClientScript;
+            StringBuilder sb = new StringBuilder();
+            Type csType = this.GetType();
+            string csName = "RadioScript";
+
+            sb.Append("<script>");
+            int count = (int)Session["radioCount"];
+            for (int i = 0; i < count; i++)
+            {
+                sb.Append("$(function() {");
+                sb.Append("$( '#radio" + i.ToString() + "' ).buttonset()");
+                sb.Append("});");
+            }
+            sb.Append("</script>");
+            csm.RegisterStartupScript(csType, csName, sb.ToString());
+        }
+
+        void Header_Initialization()
+        {
+            //missing value header row
+            TableRow hRow2 = new TableRow();
+            TableRow hRow3 = new TableRow();
+
+            TableCell missNCellH = new TableCell();
+            TableCell missVCellH = new TableCell();
+            missNCellH.Text = "Name of Column";
+            missVCellH.Text = "Rows Missing";
+            missNCellH.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+            missNCellH.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+            missVCellH.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+            missVCellH.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+            hRow2.Cells.Add(missNCellH);
+            hRow2.Cells.Add(missVCellH);
+
+            TableCell filler1 = new TableCell();
+            TableCell filler2 = new TableCell();
+            filler1.Text = "-";
+            filler2.Text = "-";
+            hRow3.Cells.Add(filler1);
+            hRow3.Cells.Add(filler2);
+
+            Table2.Rows.Add(hRow2);
+            Table2.Rows.Add(hRow3);
+
+            //main table header row
+            TableRow hRow = new TableRow();
+
+            TableCell dependH = new TableCell();
+            TableCell nameCellH = new TableCell();
+            TableCell varTCellH = new TableCell();
+            TableCell meanCellH = new TableCell();
+            TableCell medCellH = new TableCell();
+            TableCell moCellH = new TableCell();
+            TableCell stdCellH = new TableCell();
+            TableCell cardCellH = new TableCell();
+
+            dependH.Text = "Variable Dependency";
+            nameCellH.Text = "Name";
+            varTCellH.Text = "Type";
+            meanCellH.Text = "Mean";
+            medCellH.Text = "Min";
+            moCellH.Text = "Max";
+            stdCellH.Text = "Std Dev";
+            cardCellH.Text = "Cardinality";
+
+            hRow.Cells.Add(dependH); ;
+            hRow.Cells.Add(nameCellH);
+            hRow.Cells.Add(varTCellH);
+            hRow.Cells.Add(meanCellH);
+            hRow.Cells.Add(medCellH);
+            hRow.Cells.Add(moCellH);
+            hRow.Cells.Add(stdCellH);
+            hRow.Cells.Add(cardCellH);
+
+            Table1.Rows.Add(hRow);
+        }
+
         void Radio_Changed(object sender, EventArgs e, string col)
+        //void Radio_Changed(object sender, string col)
         {
             Dictionary<string, string> depDic = new Dictionary<string, string>();
 
             if (ViewState["dict"] != null)
-            { depDic = (Dictionary<string, string>)ViewState["dict"]; }
+            { 
+                depDic = (Dictionary<string, string>)ViewState["dict"]; 
+            }
 
             RadioButtonList rb1 = (sender as RadioButtonList);
             if (depDic.ContainsKey(col))
-            {   depDic[col] = rb1.SelectedItem.Value; }
+            {   
+                depDic[col] = rb1.SelectedItem.Value; 
+            }
             else
-            {   depDic.Add(col, rb1.SelectedItem.Value); }
+            {   
+                depDic.Add(col, rb1.SelectedItem.Value); 
+            }
 
             List<string> main = new List<string>();
             List<string> dep = new List<string>();
@@ -390,15 +486,21 @@ namespace HP_Analytics_Project.Images
             foreach ( KeyValuePair<string,string> kp in depDic)
             {
                 if (kp.Value == "i")
-                {   main.Add(kp.Key); }
+                {   
+                    main.Add(kp.Key); 
+                }
                 else if (kp.Value == "d")
-                {   dep.Add(kp.Key); }
+                {   
+                    dep.Add(kp.Key); 
+                }
             }
             main.Sort();
             dep.Sort();
 
             foreach ( string v in dep )
-            {   main.Add(v); }
+            {   
+                main.Add(v); 
+            }
 
             TableRow trH = new TableRow();
             TableCell corner = new TableCell();
@@ -411,7 +513,9 @@ namespace HP_Analytics_Project.Images
                 TableCell tcH1 = new TableCell();
                 tcH1.Text = v;
                 if (depDic[v] == "i")
-                {   tcH1.Font.Bold = true; }
+                {   
+                    tcH1.Font.Bold = true; 
+                }
                 tcH1.HorizontalAlign = HorizontalAlign.Center;
                 tcH1.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
                 tcH1.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
@@ -421,7 +525,9 @@ namespace HP_Analytics_Project.Images
                 TableCell tc1 = new TableCell();
                 tc1.Text = v;
                 if (depDic[v] == "i")
-                { tc1.Font.Bold = true; }
+                { 
+                    tc1.Font.Bold = true; 
+                }
                 tc1.HorizontalAlign = HorizontalAlign.Center;
                 tc1.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
                 tc1.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
@@ -432,9 +538,13 @@ namespace HP_Analytics_Project.Images
                     TableCell cell = new TableCell();
 
                     if (i == main.IndexOf(v))
-                    {   cell.Text = "1"; }
+                    {   
+                        cell.Text = "1"; 
+                    }
                     else
-                    {   cell.Text = "-"; }
+                    {   
+                        cell.Text = "-"; 
+                    }
 
                     cell.HorizontalAlign = HorizontalAlign.Center;
                     cell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
