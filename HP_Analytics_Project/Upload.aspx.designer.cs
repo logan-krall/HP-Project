@@ -40,6 +40,15 @@ namespace HP_Analytics_Project.Images {
         protected global::System.Web.UI.WebControls.Table Table3;
         
         /// <summary>
+        /// CorrTable control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Table CorrTable;
+        
+        /// <summary>
         /// Table4 control.
         /// </summary>
         /// <remarks>

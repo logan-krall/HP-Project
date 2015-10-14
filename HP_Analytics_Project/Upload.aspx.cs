@@ -2,6 +2,12 @@
 using System.Data;
 using System.Data.OleDb;
 
+//Accord.net
+using Accord.IO;
+using Accord.Math;
+using Accord.Statistics;
+using Accord.Collections;
+
 //Spire XLS
 using Spire.Xls;
 
@@ -82,13 +88,38 @@ namespace HP_Analytics_Project.Images
             }
             else if (extension == ".xlsx")
             {
+                //Accord.net
+                /*
+                ExcelReader reader = new ExcelReader(fullName);                 //Create a new reader, given the filepath
+                string[] sheets = reader.GetWorksheetList();                    //Query the file for all worksheets
+
+                for (int i = 0; i < sheets.Length; i++)
+                {
+                    DataTable temp = reader.GetWorksheet(sheets[i]);
+                    if (temp.Rows.Count > 1 || temp.Columns.Count > 1)
+                    {
+                        myDataSet.Tables.Add(temp);
+                    }    
+                }
+                */
+
                 //Spire XLS
+                
                 Spire.Xls.Workbook wrkbook = new Spire.Xls.Workbook();          //create new workbook
                 wrkbook.LoadFromFile(@fullName);                                //load a file
-                Spire.Xls.Worksheet wrksheet = wrkbook.Worksheets[0];           //initialize worksheet
-                
-                myDataTable = wrksheet.ExportDataTable();
-                myDataSet.Tables.Add(myDataTable);
+                //Spire.Xls.Worksheet wrksheet = wrkbook.Worksheet[1];           //initialize worksheet
+                //myDataSet.Tables.Add(myDataTable);
+                Spire.Xls.Collections.WorksheetsCollection wrksheets = wrkbook.Worksheets;
+
+                for (int i = 0; i < wrksheets.Count; i++)
+                {
+                    DataTable temp = wrksheets[i].ExportDataTable();
+                    if (temp.Rows.Count > 1 || temp.Columns.Count > 1)
+                    {
+                        myDataSet.Tables.Add(temp);
+                    }
+                    
+                }
 
                 /*
                  Open XML sdk
@@ -182,25 +213,230 @@ namespace HP_Analytics_Project.Images
 
             ViewState["missing"] = false;
 
+
+            //Start Correlational Matrix 
+            DataTable tempdt = myDataSet.Tables[0].Copy();
+
+            for (int i = 0; i < tempdt.Columns.Count; i++)
+            {
+                string type = tempdt.Columns[i].DataType.ToString();
+                if ((type.Contains(typeof(string).ToString()) || type.Contains(typeof(char).ToString())))
+                {
+                    tempdt.Columns.Remove(tempdt.Columns[i]);
+                }
+            }
+            
+            double[,] tableMatrix = tempdt.ToMatrix();
+            double[,] correlMatrix = Accord.Statistics.Tools.Correlation(tableMatrix);
+            string[] names = new string[myDataSet.Tables[0].Columns.Count];
+            int h = 0;
+            TableRow headRow = new TableRow();
+
+            TableCell cornerCell = new TableCell();
+            cornerCell.Text = "-";
+            cornerCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+            cornerCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+            headRow.Cells.Add(cornerCell);
+
+            foreach (DataColumn col in myDataSet.Tables[0].Columns)
+            {
+                string type = col.DataType.ToString();
+                if (!(type.Contains(typeof(string).ToString()) || type.Contains(typeof(char).ToString())))
+                {
+                    names[h] = col.ColumnName.ToString();
+
+                    TableCell cell = new TableCell();
+                    cell.Text = names[h];
+                    cell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                    cell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                    headRow.Cells.Add(cell);
+
+                    h++;
+                }
+            }
+
+            CorrTable.Rows.Add(headRow);
+
+            for (int i = 0; i < correlMatrix.Rows(); i++)
+            {
+                double[] row = correlMatrix.GetRow(i);
+                int length = row.Length;
+
+                TableRow tR = new TableRow();
+
+                TableCell rowName = new TableCell();
+                rowName.Text = names[i];
+                rowName.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                rowName.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                tR.Cells.Add(rowName);
+                
+                for (int j = 0; j < length; j++)
+                {
+                    TableCell cell = new TableCell();
+
+                    if (j <= i)
+                    {
+                        cell.Text = row[j].ToString("0.###");
+                    }
+                    else
+                    {
+                        cell.Text = "-";
+                    }
+
+                    cell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                    cell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                    tR.Cells.Add(cell);
+                }
+                CorrTable.Rows.Add(tR);
+            }
+            //End Correlational Matrix
+
             foreach (DataTable dt in myDataSet.Tables)
             {
                 foreach (DataColumn dc in dt.Columns)
                 {
                     if (dataTypes.Contains(dc.DataType))
                     {
-                        double mean = 0, min = 0, max = 0, stdD = 0;
                         string varName = String.Empty, varType = String.Empty, uniqueVals = "*";
-
+                        double mean = 0, min = 0, max = 0, stdD = 0;
                         TableRow tRow = new TableRow();
-
-                        TableCell dependCell = new TableCell();
-                        TableCell nameCell = new TableCell();
-                        TableCell varTCell = new TableCell();
                         TableCell meanCell = new TableCell();
                         TableCell minCell = new TableCell();
                         TableCell maxCell = new TableCell();
                         TableCell stdCell = new TableCell();
+                        TableCell dependCell = new TableCell();
+                        TableCell nameCell = new TableCell();
+                        TableCell varTCell = new TableCell();
                         TableCell cardCell = new TableCell();
+                        TableCell levelsCell = new TableCell();
+
+                        //Start Dependency Radio List
+                        RadioButtonList depend1 = new RadioButtonList();
+
+                        depend1.ID = dc.ColumnName.ToString();
+                        depend1.AutoPostBack = true;
+                        depend1.SelectedIndexChanged += new EventHandler((s, e1) => Radio_Changed(s, e1, dc.ColumnName.ToString()));
+                        depend1.RepeatDirection = System.Web.UI.WebControls.RepeatDirection.Horizontal;
+                        depend1.Font.Size = System.Web.UI.WebControls.FontUnit.XSmall;
+
+                        ListItem ind = new ListItem();
+                        ListItem dep = new ListItem();
+                        ListItem ign = new ListItem();
+                        ind.Text = "  Independent";
+                        dep.Text = "  Dependent";
+                        ign.Text = "  Ignore";
+                        ind.Value = "i";
+                        dep.Value = "d";
+                        ign.Value = "0";
+
+                        depend1.Items.Add(ind);
+                        depend1.Items.Add(dep);
+                        depend1.Items.Add(ign);
+                        dependCell.Controls.Add(depend1);
+                        //End Dependency Radio List
+
+                        //Block for calculating Cardinality.
+                        DataTable catVals = dt.DefaultView.ToTable(true, dc.ColumnName.ToString());
+                        uniqueVals = catVals.Rows.Count.ToString();
+                        if (catVals.Rows.Count == 2)
+                        {
+                            List<string> logits;
+                            if (ViewState["logits"] == null)
+                            {
+                                logits = new List<string>();
+                                ViewState["logits"] = logits;
+                            }
+                            else
+                            {
+                                logits = (List<string>)ViewState["logits"];
+                            }
+                            logits.Add(dc.ColumnName.ToString());
+                            ViewState["logits"] = logits;
+                        }
+                        //End Block for calculating Cardinality.
+
+                        if (dc.DataType.ToString() == typeof(char).ToString() || dc.DataType.ToString() == typeof(string).ToString())
+                        {
+                            varType = "Nominal";
+                            levelsCell.Text = "-";
+                        }
+                        else
+                        {
+                            varType = "Numeric";
+
+                            //Block for calculating Mean.
+                            object meanObject;
+                            meanObject = dt.Compute("Avg(" + dc.ColumnName.ToString() + ")", string.Empty);
+                            mean = Double.Parse(meanObject.ToString());
+
+                            //Block for calculating STD.
+                            object stdDobject;
+                            stdDobject = dt.Compute("StDev(" + dc.ColumnName.ToString() + ")", string.Empty);
+                            stdD = Double.Parse(stdDobject.ToString());
+
+                            //Block for calculating Min.
+                            object minObject;
+                            minObject = dt.Compute("Min(" + dc.ColumnName.ToString() + ")", string.Empty);
+                            min = Double.Parse(minObject.ToString());
+
+                            //Block for calculating Max.
+                            object maxObject;
+                            maxObject = dt.Compute("Max(" + dc.ColumnName.ToString() + ")", string.Empty);
+                            max = Double.Parse(maxObject.ToString());
+
+                            meanCell.Text = mean.ToString("0.#####");
+                            minCell.Text = min.ToString("0.#####");
+                            maxCell.Text = max.ToString("0.#####");
+                            stdCell.Text = stdD.ToString("0.#####");
+                        }
+
+
+                        varName = dc.ColumnName.ToString();
+                        nameCell.Text = varName;
+                        cardCell.Text = uniqueVals;
+                        varTCell.Text = varType;
+
+                        dependCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                        dependCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                        nameCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                        nameCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                        varTCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                        varTCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                        cardCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                        cardCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                        tRow.Cells.Add(dependCell);
+                        tRow.Cells.Add(nameCell);
+                        tRow.Cells.Add(varTCell);
+
+                        if (!(dc.DataType.ToString() == typeof(char).ToString() || dc.DataType.ToString() == typeof(string).ToString()))
+                        {
+                            meanCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                            meanCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                            minCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                            minCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                            maxCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                            maxCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                            stdCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                            stdCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                            tRow.Cells.Add(meanCell);
+                            tRow.Cells.Add(minCell);
+                            tRow.Cells.Add(maxCell);
+                            tRow.Cells.Add(stdCell);
+                        }
+                        tRow.Cells.Add(cardCell);
+
+                        if (dc.DataType.ToString() == typeof(char).ToString() || dc.DataType.ToString() == typeof(string).ToString())
+                        {
+                            levelsCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                            levelsCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                            tRow.Cells.Add(levelsCell);
+                            Table3.Rows.Add(tRow);
+                            Table3.Visible = true;
+                        }
+                        else
+                        {
+                            Table1.Rows.Add(tRow);
+                        }
 
                         /*
                         //div for button format
@@ -223,135 +459,17 @@ namespace HP_Analytics_Project.Images
                         //depend1.Controls.Add(div);
                         //dependCell.Controls.Add(div);
                         //Session["radioCount"] = ++num;
-                         
-                         * 
                         */
-
-
-                        //dependency radio list
-                        RadioButtonList depend1 = new RadioButtonList();
-                        
-                        depend1.ID = dc.ColumnName.ToString();
-                        depend1.AutoPostBack = true;
-                        depend1.SelectedIndexChanged += new EventHandler((s, e1) => Radio_Changed(s, e1, dc.ColumnName.ToString()));
-                        depend1.RepeatDirection = System.Web.UI.WebControls.RepeatDirection.Horizontal;
-                        depend1.Font.Size = System.Web.UI.WebControls.FontUnit.XSmall;
-
-                        ListItem ind = new ListItem();
-                        ListItem dep = new ListItem();
-                        ListItem ign = new ListItem();
-                        ind.Text = "  Independent";
-                        dep.Text = "  Dependent";
-                        ign.Text = "  Ignore";
-                        ind.Value = "i";
-                        dep.Value = "d";
-                        ign.Value = "0";
-
-                        depend1.Items.Add(ind);
-                        depend1.Items.Add(dep);
-                        depend1.Items.Add(ign);
-                        dependCell.Controls.Add(depend1);
-                        
-                        //Block for calculating Cardinality.
-                        DataTable catVals = dt.DefaultView.ToTable(true, dc.ColumnName.ToString());
-                        uniqueVals = catVals.Rows.Count.ToString();
-                        if (catVals.Rows.Count == 2)
-                        {
-                            List<string> logits;
-                            if (ViewState["logits"] == null)
-                            {
-                                logits = new List<string>();
-                                ViewState["logits"] = logits;
-                            }
-                            else
-                            {
-                                logits = (List<string>) ViewState["logits"];
-                            }
-                            logits.Add(dc.ColumnName.ToString());
-                        }
-
-                        if (dc.DataType.ToString() == typeof(char).ToString() || dc.DataType.ToString() == typeof(string).ToString())
-                        {
-                            meanCell.Text = "*";
-                            minCell.Text = "*";
-                            maxCell.Text = "*";
-                            stdCell.Text = "*";
-                            varType = "Nominal";
-
-                            //int indx = dt.Columns.IndexOf(dc);
-                            //string type = dt.Rows[1][indx].GetType().ToString();
-                            //varType = type;
-                        }
-                        else
-                        {
-                            varType = "Numeric";
-                        }
-                        //Block for calculating Mean.
-                        if (dc.DataType.ToString() != typeof(char).ToString() && dc.DataType.ToString() != typeof(string).ToString())
-                        {
-                            object meanObject;
-                            meanObject = dt.Compute("Avg(" + dc.ColumnName.ToString() + ")", string.Empty);
-                            mean = Double.Parse(meanObject.ToString());
-                            
-                            //Block for calculating STD.
-                            object stdDobject;
-                            stdDobject = dt.Compute("StDev(" + dc.ColumnName.ToString() + ")", string.Empty);
-                            stdD = Double.Parse(stdDobject.ToString());
-
-                            //Block for calculating Min.
-                            object minObject;
-                            minObject = dt.Compute("Min(" + dc.ColumnName.ToString() + ")", string.Empty);
-                            min = Double.Parse(minObject.ToString());
-
-                            //Block for calculating Max.
-                            object maxObject;
-                            maxObject = dt.Compute("Max(" + dc.ColumnName.ToString() + ")", string.Empty);
-                            max = Double.Parse(maxObject.ToString());
-
-                            meanCell.Text = mean.ToString("0.#####");
-                            minCell.Text = min.ToString("0.#####");
-                            maxCell.Text = max.ToString("0.#####");
-                            stdCell.Text = stdD.ToString("0.#####");
-                        }
-
-                        varName = dc.ColumnName.ToString();
-                        nameCell.Text = varName;
-                        cardCell.Text = uniqueVals;                            
-                        varTCell.Text = varType;
-
-                        dependCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-                        dependCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-                        nameCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-                        nameCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-                        varTCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-                        varTCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-                        meanCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-                        meanCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-                        minCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-                        minCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-                        maxCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-                        maxCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-                        stdCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-                        stdCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-                        cardCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-                        cardCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-                        tRow.Cells.Add(dependCell);
-                        tRow.Cells.Add(nameCell);
-                        tRow.Cells.Add(varTCell);
-                        tRow.Cells.Add(meanCell);
-                        tRow.Cells.Add(minCell);
-                        tRow.Cells.Add(maxCell);
-                        tRow.Cells.Add(stdCell);
-                        tRow.Cells.Add(cardCell);
-
-                        Table1.Rows.Add(tRow);
 
                         int colNum = 0, missingV = 0;
                         colNum = dt.Columns.IndexOf(dc);
 
                         foreach (DataRow dr in dt.Rows)
                         {
-                            if (dr[colNum].ToString().Length == 0) { missingV += 1; }
+                            if (dr[colNum].ToString().Length == 0)
+                            {
+                                missingV += 1;
+                            }
                         }
 
                         if (missingV > 0)
@@ -427,7 +545,7 @@ namespace HP_Analytics_Project.Images
             Table2.Rows.Add(hRow2);
             Table2.Rows.Add(hRow3);
 
-            //main table header row
+            //Numeric table header row
             TableRow hRow = new TableRow();
 
             TableCell dependH = new TableCell();
@@ -458,11 +576,34 @@ namespace HP_Analytics_Project.Images
             hRow.Cells.Add(cardCellH);
 
             Table1.Rows.Add(hRow);
+
+            //Nomical table header row
+            TableRow hRow4 = new TableRow();
+
+            TableCell dependH2 = new TableCell();
+            TableCell nameCellH2 = new TableCell();
+            TableCell varTCellH2 = new TableCell();
+            TableCell cardCellH2 = new TableCell();
+            TableCell levelsCellH = new TableCell();
+
+            dependH2.Text = "Variable Dependency";
+            nameCellH2.Text = "Name";
+            varTCellH2.Text = "Type";
+            cardCellH2.Text = "Cardinality";
+            levelsCellH.Text = "Levels";
+
+            hRow4.Cells.Add(dependH2); ;
+            hRow4.Cells.Add(nameCellH2);
+            hRow4.Cells.Add(varTCellH2);
+            hRow4.Cells.Add(cardCellH2);
+            hRow4.Cells.Add(levelsCellH);
+
+            Table3.Rows.Add(hRow4);
         }
 
         void Radio_Changed(object sender, EventArgs e, string col)
-        //void Radio_Changed(object sender, string col)
         {
+            
             Dictionary<string, string> depDic = new Dictionary<string, string>();
 
             if (ViewState["dict"] != null)
@@ -480,79 +621,48 @@ namespace HP_Analytics_Project.Images
                 depDic.Add(col, rb1.SelectedItem.Value); 
             }
 
-            List<string> main = new List<string>();
-            List<string> dep = new List<string>();
-
-            foreach ( KeyValuePair<string,string> kp in depDic)
+            foreach (KeyValuePair<string, string> kp in depDic)
             {
-                if (kp.Value == "i")
-                {   
-                    main.Add(kp.Key); 
-                }
-                else if (kp.Value == "d")
-                {   
-                    dep.Add(kp.Key); 
-                }
-            }
-            main.Sort();
-            dep.Sort();
-
-            foreach ( string v in dep )
-            {   
-                main.Add(v); 
-            }
-
-            TableRow trH = new TableRow();
-            TableCell corner = new TableCell();
-            corner.Text = "-";
-            trH.Cells.Add(corner);
-            Table4.Rows.Add(trH);
-
-            foreach ( string v in main )
-            {
-                TableCell tcH1 = new TableCell();
-                tcH1.Text = v;
-                if (depDic[v] == "i")
-                {   
-                    tcH1.Font.Bold = true; 
-                }
-                tcH1.HorizontalAlign = HorizontalAlign.Center;
-                tcH1.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-                tcH1.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-                trH.Cells.Add(tcH1);                
-
-                TableRow tr = new TableRow();
-                TableCell tc1 = new TableCell();
-                tc1.Text = v;
-                if (depDic[v] == "i")
-                { 
-                    tc1.Font.Bold = true; 
-                }
-                tc1.HorizontalAlign = HorizontalAlign.Center;
-                tc1.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-                tc1.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-                tr.Cells.Add(tc1);
-
-                for (int i = 0; i < main.Count; i++)
+                foreach (TableCell tc in CorrTable.Rows[0].Cells)
                 {
-                    TableCell cell = new TableCell();
+                    if (!(kp.Value == "i") && tc.Text == kp.Key)
+                    {
+                        int index = CorrTable.Rows[0].Cells.GetCellIndex(tc);
+                        CorrTable.Rows[0].Cells[index].Font.Bold = false;
 
-                    if (i == main.IndexOf(v))
-                    {   
-                        cell.Text = "1"; 
-                    }
-                    else
-                    {   
-                        cell.Text = "-"; 
-                    }
+                        for (int i = 0; i <= index; i++)
+                        {
+                            CorrTable.Rows[index].Cells[i].Font.Bold = false;
+                        }
+                        for (int i = index; i < CorrTable.Rows.Count; i++)
+                        {
+                            CorrTable.Rows[i].Cells[index].Font.Bold = false;
+                        }
 
-                    cell.HorizontalAlign = HorizontalAlign.Center;
-                    cell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-                    cell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-                    tr.Cells.Add(cell);
+                    }
                 }
-                Table4.Rows.Add(tr);
             }
+            foreach (KeyValuePair<string, string> kp in depDic)
+            {
+                foreach (TableCell tc in CorrTable.Rows[0].Cells)
+                {
+                    if (kp.Value == "i" && tc.Text == kp.Key)
+                    {
+                            int index = CorrTable.Rows[0].Cells.GetCellIndex(tc);
+                            CorrTable.Rows[0].Cells[index].Font.Bold = true;
+
+                            for (int i = 0; i <= index; i++)
+                            {
+                                CorrTable.Rows[index].Cells[i].Font.Bold = true;
+                            }
+                            for (int i = index; i < CorrTable.Rows.Count; i++)
+                            {
+                                CorrTable.Rows[i].Cells[index].Font.Bold = true;
+                            }
+                        
+                    }
+                }
+            }            
             ViewState["dict"] = depDic;
         }
 
