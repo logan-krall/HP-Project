@@ -9,7 +9,7 @@ body {
     border-top: solid 10px #000;
     color: #333;
     font-size: .85em;
-    font-family: "Metric Light", Verdana, Helvetica, Sans-Serif;
+    font-family: Helvetica, "Metric Light", Verdana, Sans-Serif;
     margin: 0;
     padding: 0;
 }
@@ -68,7 +68,7 @@ h4, h5, h6 {
 }
 
 h1 {
-    font-size: 2em;
+    font-size: 3em;
 }
 
 h2 {

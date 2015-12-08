@@ -4,9 +4,9 @@
     <section class="featured">
         <div class="content-wrapper">
             <hgroup class="title">
-                <h1>Data Analytics Application</h1>
+                <h1>Abacus</h1>
             </hgroup>
-            <span style="color:#fff">This tool was written to explore different statistical model options in the pursuit of generating actionable data from large data sets. </span>
+            <span style="color:#fff">This analytics application was written to prescreen data sets for statistical analysis and to help educate and explore different statistical model options in the pursuit of generating actionable data from big data sets. </span>
         </div>
     </section>
 </asp:Content>
@@ -16,191 +16,259 @@
 <asp:Content ID="Content3" ContentPlaceHolderID="MainContent" runat="server" >
     
     <div style="text-align:center">
-        <%-- <!doctype html> --%>
-        <%-- <html lang="en"> --%>
-        <head>
-            <%-- <meta charset="utf-8"> --%>
-            <title>accordion</title>
+        <head>                       
             <link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
             <script type="text/javascript" src="//code.jquery.com/jquery-1.10.2.js"></script>
             <script type="text/javascript" src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
             
             <script type="text/javascript">
-                $(function () {
-                    $("#accordion1").accordion({
-                        collapsible: true,
-                        heightStyle: "content",
-                        clearStyle: true,
+                function BindEvents() {
+                    $(function () {
+                        $("#accordion1").accordion({
+                            collapsible: true,
+                            heightStyle: "content",
+                            clearStyle: true,
+                        });
                     });
-                });
-                $(function () {
-                    $("#accordion2").accordion({
-                        collapsible: true,
-                        heightStyle: "content",
-                        clearStyle: true,
+                    $(function () {
+                        $("#accordion2").accordion({
+                            collapsible: true,
+                            heightStyle: "content",
+                            clearStyle: true,
+                        });
                     });
-                });
-                $(function () {
-                    $("#accordion3").accordion({
-                        collapsible: true,
-                        heightStyle: "content",
-                        clearStyle: true,
+                    $(function () {
+                        $("#accordion3").accordion({
+                            collapsible: true,
+                            heightStyle: "content",
+                            clearStyle: true,
+                            active: false,
+
+                        });
                     });
-                });
-                $(function () {
-                    $("#accordion4").accordion({
-                        collapsible: true,
-                        heightStyle: "content",
-                        clearStyle: true,
+                    $(function () {
+                        $("#accordion4").accordion({
+                            collapsible: true,
+                            heightStyle: "content",
+                            clearStyle: true,
+                        });
                     });
-                });
-        </script>
+                }
+            </script>
 
             
         </head>
         <body>            
             
-        
-                    
-
         <% if ((bool)ViewState["missing"] == true) %>
         <% { %>
-            <h3>Missing Row Values</h3> 
+            <h3 style="color:red">Missing Row Values</h3> 
             <asp:Table ID="Table2" runat="server" Visible="true" HorizontalAlign="Center" BackColor="White" BorderStyle="Solid" BorderWidth="1"/>
-            <p></p><hr /><p></p>
+            <p/><p/>
+            ** Please resolve all instances of rows with missing values prior to submission for statistical analysis. **
+            <p />
+            <asp:Button OnClick="saveButton_Click" id="saveButton" Text="Save New" runat="server" />
+            <p />
+            <asp:Label ID="UploadStatusLabel" runat="server"/>
+            <p/><hr /><p/>
         <% } %>    
 
-        <h3>Data Characteristics</h3>
-        <p></p>
-        <div id="accordion1">
-            <h3>Numeric Statistics</h3>
-            <div>
-            <asp:Table ID="Table1" runat="server" Visible="true" HorizontalAlign="Center" />
-            <p></p>
-            </div>
-        </div>
-        <div id="accordion3">
-            <h3>Nominal Statistics</h3>
-            <div>
-            <asp:Table ID="Table3" runat="server" Visible="false" HorizontalAlign="Center" />
-            <p></p>
-            </div>
-        </div>
-        <p></p><hr /><p></p>
-        <h3>Correlation Matrix</h3>
-        <asp:Table ID="CorrTable" runat="server" Visible="true" HorizontalAlign="Center" BackColor="White" BorderStyle="Solid" BorderWidth="1"/>
+        <%-- Ajax for changing without postback --%>
+            <asp:UpdatePanel ID="panel1" runat="server">  
+                <ContentTemplate>
 
-        <% if (Depend_Check() == true) %>
-        <% { %>
-            <h3>Correlation Matrix</h3>
-            
-            <asp:Table ID="Table4" runat="server" Visible="true" HorizontalAlign="Center" BackColor="White" BorderStyle="Solid" BorderWidth="1" />
-            <p></p><hr /><p></p><p></p>
-        <% } %>
+                <%-- Rebind events --%>
+                <script type="text/javascript">
+                    Sys.Application.add_load(BindEvents);
+                </script>
 
-        <h3>Analytic Model Options</h3> 
-        <p></p> 
-        <div id="accordion4">
-            <% if(Table2.Rows.Count > 0 && Table2.Rows[1].Cells[0].Text != "-") %>
-            <% { %>
-                  <h3>Please Resolve Missing Values</h3>
-                  <div>
-                    <p>
-                        It's critical that data submitted for statistical analysis contains only the supported NULL value indicators. 
-                        Leaving a row element blank could lead to errors, inaccurate characterization of the data, and unexpected results. 
-                    </p>
-                  </div>          
-            <% } %>
-            <% if(Depend_Check() == false) %>
-            <% { %>
-                  <h3>Please Select Variable Dependency</h3>
-                  <div>
-                    <p>Without selecting at least 1 independent variable and 1 dependent variable, you cannot perform regression analysis.</p>
-                  </div>          
-            <% } %>
-            <% else %>
-            <% { %>
-                  <h3>Linear Regression</h3>
-                  <div>
-                  <img src="../Images/lin-reg.png" style="width:400px;height:300px;">
-                    <p>
-                        Linear regression is the most basic and commonly used predictive analysis.  
-                        Regression estimates are used to describe data and to explain the relationship 
-                        between one dependent variable and one or more independent variables. 
-                        There are 3 major uses for regression analysis – (1) causal analysis, (2) forecasting an effect, (3) trend forecasting.
-                    </p>
-                    <p>
-                        However linear regression analysis consists of more than just fitting a linear line through a cloud of data points.  
-                         It consists of 3 stages – (1) analyzing the correlation and directionality of the data, (2) estimating the model, i.e., 
-                         fitting the line, and (3) evaluating the validity and usefulness of the model.
-                    </p>
-                  </div>
-            
-                   <h3>Ridge Regression</h3>
-                  <div>
-                  <img src="../Images/ridge_regression.png" style="width:400px;height:400px;">
-                    <p>
-                        A more robust version of linear regression, putting constrainsts on regression coefficients to make them much more natural, 
-                        less subject to over-fitting, and easier to interpret. Keep in mind that ridge regression can't zero out coefficients; 
-                        thus, you either end up including all the coefficients in the model, or none of them.
-                    </p>
-                  </div>   
-                
-                  <h3>Lasso Regression</h3>
-                  <div>
-                  <img src="../Images/ordinary_lasso.png" style="width:400px;height:400px;">
-                    <p>
-                        Similar to ridge regression, but automatically performs variable reduction
-                    </p>
-                  </div>  
-            
-                  <h3>Bayesian Regression</h3>
-                  <div>
-                  
-                    <p>
-                        It's a kind of penalized likehood estimator, and thus somewhat similar to ridge regression: more flexible and stable than traditional 
-                        linear regression. It assumes that you have some prior knowledge about the regression coefficients.and the error term - 
-                        relaxing the assumption that the error must have a normal distribution (the error must still be independent across observations). 
-                        However, in practice, the prior knowledge is translated into artificial (conjugate) priors - a weakness of this technique.
-                    </p>
-                  </div>       
-            <% } %>
-            <% if (Multi_Reg_Check() == true) %>
-            <% { %>
-                   <h3>Multiple Linear Regression</h3>
-                  <div>
-                    <img src="../Images/mult-reg.png" style="width:400px;height:300px;">
-                    <p>
-                        Multiple Linear regression is the most basic and commonly used predictive analysis.  
-                        Regression estimates are used to describe data and to explain the relationship 
-                        between one dependent variable and two or more independent variables. 
-                        There are 3 major uses for regression analysis – (1) causal analysis, (2) forecasting an effect, (3) trend forecasting.
-                    </p>
-                    <p>
-                        However linear regression analysis consists of more than just fitting a linear line through a cloud of data points.  
-                         It consists of 3 stages – (1) analyzing the correlation and directionality of the data, (2) estimating the model, i.e., 
-                         fitting the line, and (3) evaluating the validity and usefulness of the model.
-                    </p>
-                  </div>    
-            <% } %>
-            <% if (Logit_Reg_Check() == true) %>
-            <% { %>
-                <h3>Logit Regression</h3>
+                <h3>Data Characteristics</h3>
+                <p></p>
+                <div id="accordion1">
+                <h3>Numeric Statistics 
+                <% if ((int)ViewState["num_numeric"] > 0) { %>
+                    ( <%= (int)ViewState["num_numeric"] %> 
+                    <% if ((int)ViewState["num_numeric"] == 1) { %>
+                    Variable )
+                    <% } %>
+                    <% else { %>
+                    Variables )
+                    <% } %>
+                <% } %>
+                <% else { %>
+                    ( Empty )
+                <% } %>
+                </h3>
                 <div>
-                    <img src="../Images/logit-reg.png" style="width:400px;height:300px;">
-                    <p>
-                        Logistic regression, also called a logit model, is used to model dichotomous outcome variables. 
-                        In the logit model the log odds of the outcome is modeled as a linear combination of the predictor variables.
-                    </p>
+                <asp:Table ID="Table1" runat="server" Visible="true" HorizontalAlign="Center" />
+                <p></p>
                 </div>
-            <% } %>
-         </div>
+                </div>
+                <div id="accordion3">
+                    <h3>Nominal Statistics 
+                        <% if ((int)ViewState["num_nominal"] > 0) { %>
+                            ( <%= (int)ViewState["num_nominal"] %> 
+                        <% if ((int)ViewState["num_nominal"] == 1) { %>
+                        Variable )
+                        <% } %>
+                        <% else { %>
+                        Variables )
+                        <% } %>
+                    <% } %>
+                    <% else { %>
+                        ( Empty )
+                    <% } %>
+
+                    </h3>
+                    <div>
+                    <asp:Table ID="Table3" runat="server" Visible="false" HorizontalAlign="Center" />
+                    <p></p>
+                    </div>
+                </div>
+                <p /><p/><hr /><p/>
+                <h3>Correlation Matrix</h3>
+
+                <%-- Correlational Matrix Table --%>
+                <asp:Table ID="CorrTable" runat="server" Visible="true" HorizontalAlign="Center" BackColor="White" BorderStyle="Solid" BorderWidth="1"/>
+                <p /><hr /><p />
+                <h3>Analytic Model Options</h3> 
+                <p/> 
+                <div id="accordion4">
+                    <% if(Table2.Rows.Count > 0 && Table2.Rows[1].Cells[0].Text != "-") %>
+                    <% { %>
+                          <h3>Please Resolve Missing Values</h3>
+                          <div>
+                            <p>
+                                It's critical that data submitted for statistical analysis contains only the supported NULL value indicators. 
+                                Leaving a row element blank could lead to errors, inaccurate characterization of the data, and unexpected results. 
+                            </p>
+                          </div>          
+                    <% } %>
+                    <% if(Depend_Check() == false) %>
+                    <% { %>
+                          <h3>Please Select Variable Dependency</h3>
+                          <div>
+                            <p>Without selecting at least 1 independent variable and 1 dependent variable, you cannot perform regression analysis.</p>
+                          </div>          
+                    <% } %>
+                    <% else %>
+                    <% { %>
+                          <h3>Simple Regression</h3>
+                          <div>
+                          <img src="../Images/lin-reg.png" style="width:400px;height:300px;">
+                            <p>
+                                Simple regression analysis is used to describe data and help explain the relationship between a single independent variable and 
+                                a dependent variable but produces results that are typically less realistic than multiple regression analysis because of the 
+                                limited number of independent, or explanatory, variables. The three most common applications of regression analysis includes 
+                                being able to perform causal analysis to identify trends, predictive analysis on individual cases, and forecasting overall trends. 
+                            </p><p>
+                                An example of simple regression being utilized in a business setting could provide understanding on how sensitive sales are to 
+                                changes in total advertising expenditures. Such an analysis would provide the ability to make predictions about increases or 
+                                decreases in sales volume based on a specific scenario where changes to advertising are made. 
+                            </p>
+                          </div>
+            
+                           <h3>Ridge Regression</h3>
+                          <div>
+                          <img src="../Images/ridge_regression.png" style="width:400px;height:400px;">
+                            <p>
+                                Ridge regression analysis can be performed between multiple independent, or explanatory, variables and a dependent variable, 
+                                similarly to multiple regression, but is typically used when your explanatory variables are highly correlated with each other. 
+                                Ridge regression may also be used when your dependent variable only represents a small number of values, which causes 
+                                Least Squares regression analysis, an alternative to ridge regression, to produce inaccurate predictions. 
+                            </p><p>
+                                For regression analysis, you want a high degree of correlation between your explanatory and dependent variables so that 
+                                accurate predictions can be made, but when you have highly correlated explanatory variables the predictions may be less 
+                                accurate. The degree of correlation between variables can be calculated and displayed in a correlational matrix with a 
+                                percentage value representing their relationship at the intersection of their sets in the table. 
+                            </p><p>
+                                An example of ridge regression being utilized in a business setting could provide understanding on how sensitive sales are 
+                                to changes in advertising dollars spent, and various additional influences. With these results, forecasts for future 
+                                demand can be generated and used to predict changes in sales that could be either beneficial or detrimental to profits. 
+                            </p>
+                          </div>   
+                
+                          <h3>Lasso Regression</h3>
+                          <div>
+                          <img src="../Images/ordinary_lasso.png" style="width:400px;height:400px;">
+                            <p>
+                                Least Absolute Shrinkage of Selection Operator, or Lasso for short, can be performed between multiple independent, or explanatory, 
+                                variables and a dependent variable, similarly to multiple and ridge regression analysis. In contrast, it allows for both highly 
+                                correlated explanatory variables, which is a problem for multiple regression, and the ability to shrink the influence of certain 
+                                variables down to zero, which cannot be done in ridge regression. 
+                            </p><p>
+                                For regression analysis, you want a high degree of correlation between your explanatory and dependent variables so that accurate 
+                                predictions can be made, but when you have highly correlated explanatory variables the predictions may be less accurate. The degree 
+                                of correlation between variables can be calculated and displayed in a correlational matrix with a percentage value representing their 
+                                relationship at the intersection of their sets in the table. 
+                            </p><p>
+                                An example of lasso regression being utilized in a business setting could provide understanding on how sensitive sales are to changes 
+                                in advertising dollars spent, and various additional influences. With these results, forecasts for future demand can be generated and 
+                                used to predict changes in sales that could be either beneficial or detrimental to profits. 
+                            </p>
+                          </div>  
+            
+                          <h3>Bayesian Regression</h3>
+                          <div>
+                  
+                            <p>
+                                Bayesian regression analysis can be performed between multiple independent, or explanatory, variables and a dependent variable, 
+                                similarly to multiple and ridge regression analysis. In contrast to ridge regression, bayesian regression allows for the compensation 
+                                of overfitting when a model has too many parameters relative to the number of observations by relaxing the assumption that the errors 
+                                must have a normal distribution. 
+                            </p><p>
+                                An example of bayesian regression being utilized in a business setting could provide understanding on how sensitive sales are to changes
+                                in advertising dollars spent, and various additional influences. With these results, forecasts for future demand can be generated and 
+                                used to predict changes in sales that could be either beneficial or detrimental to profits. 
+                            </p>
+                          </div>       
+                    <% } %>
+                    <% if (Multi_Reg_Check() == true) %>
+                    <% { %>
+                           <h3>Multiple Regression</h3>
+                          <div>
+                            <img src="../Images/mult-reg.png" style="width:400px;height:300px;">
+                            <p>
+                                Multiple regression analysis can be performed between multiple independent variables and a single dependent variable but produces 
+                                results that are typically more realistic than simple regression analysis because of the increased number of independent, or 
+                                explanatory, variables. The three most common applications of regression analysis includes being able to perform causal analysis 
+                                to identify trends, predictive analysis on individual cases, and forecasting overall trends. 
+                            </p>
+                            <p>
+                                An example of multiple regression being utilized in a business setting could provide understanding on how sensitive sales are to 
+                                changes in advertising dollars spent and various additional influences. With these results, forecasts for future demand 
+                                can be generated and used to predict changes in sales that could be either beneficial or detrimental to profits. 
+                            </p>
+                          </div>    
+                    <% } %>
+                    <% if (Logit_Reg_Check() == true) %>
+                    <% { %>
+                        <h3>Logit Regression</h3>
+                        <div>
+                            <img src="../Images/logit-reg.png" style="width:400px;height:300px;">
+                            <p>
+                                Logistic regression analysis can be performed between a single independent variable and a dependent variable, similarly to simple 
+                                regression, but requires a categorical dependent variable rather than continuous. While multinomial logistic regression can be 
+                                performed on a categorical variable with a finite range of values, logistic regression is typically used on dichotomous variables 
+                                that only represent two possible outcomes. 
+                            </p><p>
+                                An example of logistic regression on a dichotomous categorical dependent variable in a business setting could be performing an 
+                                analysis on customer retention using length of the customer's account history. Customer retention is a two outcome variable that 
+                                represents making another sale or not and using this analysis we can make predictions about the probability of future sales. 
+
+                            </p>
+                        </div>
+                    <% } %>
+                 </div>
  
-        <script>
-            $("#accordion").accordion();
-        </script>
+                <script>
+                    $("#accordion").accordion();
+                </script>
+            
+                </ContentTemplate>
+            </asp:UpdatePanel>
+
         </body> 
-        <%--</html> --%>
         </p>
     </div>
 </asp:Content>

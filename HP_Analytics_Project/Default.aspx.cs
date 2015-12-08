@@ -63,7 +63,6 @@ namespace HP_Analytics_Project
                         UploadStatusLabel.Text = "File could not be uploaded because " + err + " exception caught.";
                     }
 
-                    //if (File.Exists(path + FileUpload1.FileName))
                     if (File.Exists(save))
                     {
                         Server.Transfer("Upload.aspx", true);

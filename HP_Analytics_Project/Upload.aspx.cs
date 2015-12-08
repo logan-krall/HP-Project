@@ -1,5 +1,10 @@
 ﻿using System;
 using System.Data;
+
+//SQL Server
+using System.Data.SqlClient;
+
+//OleDB
 using System.Data.OleDb;
 
 //Accord.net
@@ -40,257 +45,29 @@ namespace HP_Analytics_Project.Images
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            string fullName = (string)(Session["name"]);
-            string extension = System.IO.Path.GetExtension(fullName).ToLower();
             Session["radioCount"] = 0;
-
             List<string> cellTypes = new List<string>();
-            
-            DataSet myDataSet = new DataSet();
-            DataTable myDataTable = new DataTable();
 
-            if (extension == ".xls")
-            {
-                //Olebdb version
-                string connectionString = string.Empty;
-                connectionString = "Provider=Microsoft.Jet.OLEDB.4.0;";
-                connectionString += "Data Source='" + fullName + "';";
-                connectionString += "Extended Properties='Excel 8.0;HDR=YES;IMEX=1;READONLY=TRUE;';";
+            //Loads file into DataSet
+            DataSet myDataSet = Load_File(new DataSet());
 
-                OleDbCommand cmd = new OleDbCommand();
-                OleDbConnection conn = new OleDbConnection(connectionString);
+            //Populate table headers
+            Table_Header_Init();
 
-                conn.Open();
-                cmd.Connection = conn;
-                //Get all sheets/tables from the file
-                myDataTable = conn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, null);
-                //Loop through all sheets/tables in the file
-                foreach (DataRow dr in myDataTable.Rows)
-                {
+            //Populate Correlational Matrix 
+            DataTable tempdt = myDataSet.Tables[0].Copy();               
+            Build_Corr_Matrix(tempdt);
 
-                    string sheetName = dr["TABLE_NAME"].ToString();
-                    //Get all rows from the sheet/table
-                    cmd.CommandText = "SELECT * FROM [" + sheetName + "]";
+            //Initialize missing viewstate variable to use for finding missing values in main loop
+            ViewState["missing"] = false;
+            ViewState["num_nominal"] = 0;
+            ViewState["num_numeric"] = 0;
 
-                    DataTable dt = new DataTable();
-                    dt.TableName = sheetName;
-
-                    OleDbDataAdapter da = new OleDbDataAdapter(cmd);
-                    da.Fill(dt);
-
-                    if (dt != null && (dt.Rows.Count > 1 || dt.Columns.Count > 1))
-                    {
-                        myDataSet.Tables.Add(dt);
-                    }
-                }
-                cmd = null;
-                conn.Close();
-            }
-            else if (extension == ".xlsx")
-            {
-                //Accord.net
-                /*
-                ExcelReader reader = new ExcelReader(fullName);                 //Create a new reader, given the filepath
-                string[] sheets = reader.GetWorksheetList();                    //Query the file for all worksheets
-
-                for (int i = 0; i < sheets.Length; i++)
-                {
-                    DataTable temp = reader.GetWorksheet(sheets[i]);
-                    if (temp.Rows.Count > 1 || temp.Columns.Count > 1)
-                    {
-                        myDataSet.Tables.Add(temp);
-                    }    
-                }
-                */
-
-                //Spire XLS
-                
-                Spire.Xls.Workbook wrkbook = new Spire.Xls.Workbook();          //create new workbook
-                wrkbook.LoadFromFile(@fullName);                                //load a file
-                //Spire.Xls.Worksheet wrksheet = wrkbook.Worksheet[1];           //initialize worksheet
-                //myDataSet.Tables.Add(myDataTable);
-                Spire.Xls.Collections.WorksheetsCollection wrksheets = wrkbook.Worksheets;
-
-                for (int i = 0; i < wrksheets.Count; i++)
-                {
-                    DataTable temp = wrksheets[i].ExportDataTable();
-                    if (temp.Rows.Count > 1 || temp.Columns.Count > 1)
-                    {
-                        myDataSet.Tables.Add(temp);
-                    }
-                    
-                }
-
-                /*
-                 Open XML sdk
-                 
-                DocumentFormat.OpenXml.Packaging.SpreadsheetDocument doc = DocumentFormat.OpenXml.Packaging.SpreadsheetDocument.Open(fullName, false);
-
-                //Creates Workbook Part
-                WorkbookPart workbookPart = doc.WorkbookPart;
-                //Creates IEnumerable list of sheets from the document, starting from the first
-                IEnumerable<Sheet> sheets = doc.WorkbookPart.Workbook.GetFirstChild<Sheets>().Elements<Sheet>();
-                //Extracts the ID of the first sheet to a string
-                string relationID = sheets.First().Id.Value;
-                //Finds the first worksheet part by the ID
-                WorksheetPart worksheetPart = (WorksheetPart)doc.WorkbookPart.GetPartById(relationID);
-                //Extracts the first worksheet from the first worksheet part
-                Worksheet worksheet = worksheetPart.Worksheet;
-                //Extracts the first sheet data from the first worksheet
-                SheetData sheetData = worksheet.GetFirstChild<SheetData>();
-                //Creates IEnumerable list of rows from the first sheet data.
-                IEnumerable<Row> rows = sheetData.Descendants<Row>();
-
-                foreach (Cell cell in rows.ElementAt(0))
-                {
-                    DataColumn col = new DataColumn();
-                    myDataTable.Columns.Add(col);
-                }
-
-                foreach (Row row in rows)
-                {
-                    DataRow newRow = myDataTable.NewRow();
-
-                    for (int i = 0; i < row.Descendants<Cell>().Count(); i++)
-                    {
-                        newRow[i] = row.Descendants<Cell>().ElementAt(i).InnerText;
-                    }
-
-                    myDataTable.Rows.Add(newRow);
-                }
-
-                doc.Close();
-                myDataSet.Tables.Add(myDataTable);
-                */
-                /*
-                 EPPlus
-                 * 
-                DataTable dt = new DataTable();
-                FileInfo fi = new FileInfo(fullName);
-
-                // Check if the file exists
-                if (!fi.Exists)
-                    throw new Exception("File " + fullName + " Does Not Exists");
-
-                using (ExcelPackage xlPackage = new ExcelPackage(fi))
-                {
-                    // get the first worksheet in the workbook
-                    ExcelWorksheet worksheet = xlPackage.Workbook.Worksheets.First();
-
-                    // Fetch the WorkSheet size
-                    ExcelCellAddress startCell = worksheet.Dimension.Start;
-                    ExcelCellAddress endCell = worksheet.Dimension.End;
-
-                    // create all the needed DataColumn
-                    for (int col = startCell.Column; col <= endCell.Column; col++)
-                        dt.Columns.Add(col.ToString());
-
-                    // place all the data into DataTable
-                    for (int row = startCell.Row; row <= endCell.Row; row++)
-                    {
-                        DataRow dr = dt.NewRow();
-                        int x = 0;
-                        for (int col = startCell.Column; col <= endCell.Column; col++)
-                        {
-                            dr[x++] = worksheet.Cells[row, col].Value;
-                        }
-                        dt.Rows.Add(dr);
-                    }
-                }
-                myDataSet.Tables.Add(dt);
-                */
-                                
-            }
-            else if (extension == ".csv")
-            {
-
-            }
-
-            Header_Initialization();
-
+            //Build a list of all acceptable data types for use in main loop type checking
             var dataTypes = new[] { typeof(Byte), typeof(SByte), typeof(Decimal), typeof(Double), typeof(Single), typeof(Int16), 
                 typeof(Int32), typeof(Int64), typeof(UInt16), typeof(UInt32), typeof(UInt64), typeof(Char), typeof(string) };
 
-            ViewState["missing"] = false;
-
-
-            //Start Correlational Matrix 
-            DataTable tempdt = myDataSet.Tables[0].Copy();
-
-            for (int i = 0; i < tempdt.Columns.Count; i++)
-            {
-                string type = tempdt.Columns[i].DataType.ToString();
-                if ((type.Contains(typeof(string).ToString()) || type.Contains(typeof(char).ToString())))
-                {
-                    tempdt.Columns.Remove(tempdt.Columns[i]);
-                }
-            }
-            
-            double[,] tableMatrix = tempdt.ToMatrix();
-            double[,] correlMatrix = Accord.Statistics.Tools.Correlation(tableMatrix);
-            string[] names = new string[myDataSet.Tables[0].Columns.Count];
-            int h = 0;
-            TableRow headRow = new TableRow();
-
-            TableCell cornerCell = new TableCell();
-            cornerCell.Text = "-";
-            cornerCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-            cornerCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-            headRow.Cells.Add(cornerCell);
-
-            foreach (DataColumn col in myDataSet.Tables[0].Columns)
-            {
-                string type = col.DataType.ToString();
-                if (!(type.Contains(typeof(string).ToString()) || type.Contains(typeof(char).ToString())))
-                {
-                    names[h] = col.ColumnName.ToString();
-
-                    TableCell cell = new TableCell();
-                    cell.Text = names[h];
-                    cell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-                    cell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-                    headRow.Cells.Add(cell);
-
-                    h++;
-                }
-            }
-
-            CorrTable.Rows.Add(headRow);
-
-            for (int i = 0; i < correlMatrix.Rows(); i++)
-            {
-                double[] row = correlMatrix.GetRow(i);
-                int length = row.Length;
-
-                TableRow tR = new TableRow();
-
-                TableCell rowName = new TableCell();
-                rowName.Text = names[i];
-                rowName.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-                rowName.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-                tR.Cells.Add(rowName);
-                
-                for (int j = 0; j < length; j++)
-                {
-                    TableCell cell = new TableCell();
-
-                    if (j <= i)
-                    {
-                        cell.Text = row[j].ToString("0.###");
-                    }
-                    else
-                    {
-                        cell.Text = "-";
-                    }
-
-                    cell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-                    cell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-                    tR.Cells.Add(cell);
-                }
-                CorrTable.Rows.Add(tR);
-            }
-            //End Correlational Matrix
-
+            //Main loop through columns
             foreach (DataTable dt in myDataSet.Tables)
             {
                 foreach (DataColumn dc in dt.Columns)
@@ -308,7 +85,6 @@ namespace HP_Analytics_Project.Images
                         TableCell nameCell = new TableCell();
                         TableCell varTCell = new TableCell();
                         TableCell cardCell = new TableCell();
-                        TableCell levelsCell = new TableCell();
 
                         //Start Dependency Radio List
                         RadioButtonList depend1 = new RadioButtonList();
@@ -358,11 +134,16 @@ namespace HP_Analytics_Project.Images
                         if (dc.DataType.ToString() == typeof(char).ToString() || dc.DataType.ToString() == typeof(string).ToString())
                         {
                             varType = "Nominal";
-                            levelsCell.Text = "-";
+                            int num = (int)ViewState["num_nominal"];
+                            ViewState["num_nominal"] = ++num;
+
                         }
                         else
                         {
                             varType = "Numeric";
+
+                            int num = (int)ViewState["num_numeric"];
+                            ViewState["num_numeric"] = ++num;
 
                             //Block for calculating Mean.
                             object meanObject;
@@ -390,7 +171,6 @@ namespace HP_Analytics_Project.Images
                             stdCell.Text = stdD.ToString("0.#####");
                         }
 
-
                         varName = dc.ColumnName.ToString();
                         nameCell.Text = varName;
                         cardCell.Text = uniqueVals;
@@ -408,7 +188,7 @@ namespace HP_Analytics_Project.Images
                         tRow.Cells.Add(nameCell);
                         tRow.Cells.Add(varTCell);
 
-                        if (!(dc.DataType.ToString() == typeof(char).ToString() || dc.DataType.ToString() == typeof(string).ToString()))
+                        if (varType == "Numeric")
                         {
                             meanCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
                             meanCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
@@ -422,45 +202,17 @@ namespace HP_Analytics_Project.Images
                             tRow.Cells.Add(minCell);
                             tRow.Cells.Add(maxCell);
                             tRow.Cells.Add(stdCell);
-                        }
-                        tRow.Cells.Add(cardCell);
-
-                        if (dc.DataType.ToString() == typeof(char).ToString() || dc.DataType.ToString() == typeof(string).ToString())
-                        {
-                            levelsCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-                            levelsCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-                            tRow.Cells.Add(levelsCell);
-                            Table3.Rows.Add(tRow);
-                            Table3.Visible = true;
+                            tRow.Cells.Add(cardCell);
+                            Table1.Rows.Add(tRow);
                         }
                         else
                         {
-                            Table1.Rows.Add(tRow);
+                            tRow.Cells.Add(cardCell);
+                            Table3.Rows.Add(tRow);
+                            Table3.Visible = true;
                         }
 
-                        /*
-                        //div for button format
-                        HtmlGenericControl div = new HtmlGenericControl("div");
-                        int num = (int)Session["radioCount"];
-                        int radioNum1 = num * 100;
-                        int radioNum2 = num * 100 + 1;
-                        int radioNum3 = num * 100 + 2;
-
-                        string name = "radio" + num.ToString();
-                        div.Attributes.Add("id", name);
-
-                        string inputText = "<input type='radio' id='" + radioNum1.ToString() + "' name='" + name + "' value = 'i " + dc.ColumnName.ToString() + "' onclick='javascript:__doPostBack(this.id, this.value)'><label for='" + radioNum1.ToString() + "'>Independent</label>" +
-                                           "<input type='radio' id='" + radioNum2.ToString() + "' name='" + name + "' value = 'd " + dc.ColumnName.ToString() + "' onclick='javascript:__doPostBack(this.id, this.value)'><label for='" + radioNum2.ToString() + "'>Dependent</label>" +
-                                           "<input type='radio' id='" + radioNum3.ToString() + "' name='" + name + "' value = '0 " + dc.ColumnName.ToString() + "' onclick='javascript:__doPostBack(this.id, this.value)'><label for='" + radioNum3.ToString() + "'>Ignore</label>";
-
-                        div.InnerHtml = inputText;
-                        
-                                                
-                        //depend1.Controls.Add(div);
-                        //dependCell.Controls.Add(div);
-                        //Session["radioCount"] = ++num;
-                        */
-
+                        //Check for missing values in this column
                         int colNum = 0, missingV = 0;
                         colNum = dt.Columns.IndexOf(dc);
 
@@ -498,27 +250,63 @@ namespace HP_Analytics_Project.Images
             }
         }
 
-        void Build_Startup_Script()
+        DataSet Load_File(DataSet myDataSet)
         {
-            //javascript for button format
-            ClientScriptManager csm = Page.ClientScript;
-            StringBuilder sb = new StringBuilder();
-            Type csType = this.GetType();
-            string csName = "RadioScript";
+            string fullName = (string)(Session["name"]);
+            string extension = System.IO.Path.GetExtension(fullName).ToLower();
+            DataTable myDataTable = new DataTable();
 
-            sb.Append("<script>");
-            int count = (int)Session["radioCount"];
-            for (int i = 0; i < count; i++)
+            if (extension == ".xls" || extension == ".xlsx")
             {
-                sb.Append("$(function() {");
-                sb.Append("$( '#radio" + i.ToString() + "' ).buttonset()");
-                sb.Append("});");
+                //Olebdb version
+                string connectionString = string.Empty;
+
+                if (extension == ".xls")
+                {
+                    connectionString = "Provider=Microsoft.Jet.OLEDB.4.0;";
+                    connectionString += "Data Source='" + fullName + "';";
+                    connectionString += "Extended Properties='Excel 8.0;HDR=YES;IMEX=1;READONLY=TRUE;';";
+                }
+                else if (extension == ".xlsx")
+                {
+                    connectionString = "Provider=Microsoft.ACE.OLEDB.12.0;";
+                    connectionString += "Data Source='" + fullName + "';";
+                    connectionString += "Extended Properties='Excel 12.0 Xml;HDR=YES';";
+                }
+
+                OleDbCommand cmd = new OleDbCommand();
+                OleDbConnection conn = new OleDbConnection(connectionString);
+
+                conn.Open();
+                cmd.Connection = conn;
+                //Get all sheets/tables from the file
+                myDataTable = conn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, null);
+                //Loop through all sheets/tables in the file
+                foreach (DataRow dr in myDataTable.Rows)
+                {
+                    string sheetName = dr["TABLE_NAME"].ToString();
+                    //Get all rows from the sheet/table
+                    cmd.CommandText = "SELECT * FROM [" + sheetName + "]";
+
+                    DataTable dt = new DataTable();
+                    dt.TableName = sheetName;
+
+                    OleDbDataAdapter da = new OleDbDataAdapter(cmd);
+                    da.Fill(dt);
+
+                    if (dt != null && (dt.Rows.Count > 1 || dt.Columns.Count > 1))
+                    {
+                        myDataSet.Tables.Add(dt);
+                    }
+                }
+                cmd = null;
+                conn.Close();
             }
-            sb.Append("</script>");
-            csm.RegisterStartupScript(csType, csName, sb.ToString());
+
+            return myDataSet;
         }
 
-        void Header_Initialization()
+        void Table_Header_Init()
         {
             //missing value header row
             TableRow hRow2 = new TableRow();
@@ -577,28 +365,111 @@ namespace HP_Analytics_Project.Images
 
             Table1.Rows.Add(hRow);
 
-            //Nomical table header row
+            //Nominal table header row
             TableRow hRow4 = new TableRow();
 
             TableCell dependH2 = new TableCell();
             TableCell nameCellH2 = new TableCell();
             TableCell varTCellH2 = new TableCell();
             TableCell cardCellH2 = new TableCell();
-            TableCell levelsCellH = new TableCell();
 
             dependH2.Text = "Variable Dependency";
             nameCellH2.Text = "Name";
             varTCellH2.Text = "Type";
             cardCellH2.Text = "Cardinality";
-            levelsCellH.Text = "Levels";
 
             hRow4.Cells.Add(dependH2); ;
             hRow4.Cells.Add(nameCellH2);
             hRow4.Cells.Add(varTCellH2);
             hRow4.Cells.Add(cardCellH2);
-            hRow4.Cells.Add(levelsCellH);
 
             Table3.Rows.Add(hRow4);
+        }
+
+        void Build_Corr_Matrix(DataTable tempdt)
+        {
+            for (int i = 0; i < tempdt.Columns.Count; i++)
+            {
+                string type = tempdt.Columns[i].DataType.ToString();
+                if ((type.Contains(typeof(string).ToString()) || type.Contains(typeof(char).ToString())))
+                {
+                    tempdt.Columns.Remove(tempdt.Columns[i]);
+                }
+                else
+                {
+                    foreach (DataRow dr in tempdt.Rows)
+                    {
+                        if (dr[i].GetType().ToString().Contains("DBNull"))
+                        {
+                            dr[i] = 0.0;
+                        }
+                    }
+                }
+            }
+
+            double[,] tableMatrix = tempdt.ToMatrix();
+            double[,] correlMatrix = Accord.Statistics.Tools.Correlation(tableMatrix);
+            string[] names = new string[tempdt.Columns.Count];
+            int h = 0;
+            TableRow headRow = new TableRow();
+
+            TableCell cornerCell = new TableCell();
+            cornerCell.Text = "-";
+            cornerCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+            cornerCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+            headRow.Cells.Add(cornerCell);
+
+            foreach (DataColumn col in tempdt.Columns)
+            {
+                string type = col.DataType.ToString();
+                if (!(type.Contains(typeof(string).ToString()) || type.Contains(typeof(char).ToString())))
+                {
+                    names[h] = col.ColumnName.ToString();
+
+                    TableCell cell = new TableCell();
+                    cell.Text = names[h];
+                    cell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                    cell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                    headRow.Cells.Add(cell);
+
+                    h++;
+                }
+            }
+
+            CorrTable.Rows.Add(headRow);
+
+            for (int i = 0; i < correlMatrix.Rows(); i++)
+            {
+                double[] row = correlMatrix.GetRow(i);
+                int length = row.Length;
+
+                TableRow tR = new TableRow();
+
+                TableCell rowName = new TableCell();
+                rowName.Text = names[i];
+                rowName.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                rowName.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                tR.Cells.Add(rowName);
+
+                for (int j = 0; j < length; j++)
+                {
+                    TableCell cell = new TableCell();
+
+                    if (j <= i)
+                    {
+                        cell.Text = row[j].ToString("0.###");
+                    }
+                    else
+                    {
+                        cell.Text = "-";
+                    }
+
+                    cell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                    cell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                    tR.Cells.Add(cell);
+                }
+                CorrTable.Rows.Add(tR);
+            }
         }
 
         void Radio_Changed(object sender, EventArgs e, string col)
@@ -709,9 +580,84 @@ namespace HP_Analytics_Project.Images
             return false;
         }
 
-        public void Model_Options()
+        protected void saveButton_Click(object sender, EventArgs e)
         {
+            DataSet myDataSet = Load_File(new DataSet());
 
+            //Build a list of all acceptable data types for use in main loop type checking
+            var dataTypes = new[] { typeof(Byte), typeof(SByte), typeof(Decimal), typeof(Double), typeof(Single), typeof(Int16), 
+                typeof(Int32), typeof(Int64), typeof(UInt16), typeof(UInt32), typeof(UInt64), typeof(Char), typeof(string) };
+
+            using (ExcelPackage p = new ExcelPackage())
+            {
+                string sheetName = "New Sheet";
+                p.Workbook.Worksheets.Add(sheetName);
+                ExcelWorksheet ws = p.Workbook.Worksheets[1];
+                ws.Name = sheetName; //Setting Sheet's name
+                ws.Cells.Style.Font.Size = 11; //Default font size for whole sheet
+                ws.Cells.Style.Font.Name = "Calibri"; //Default Font name for whole sheet
+
+                int colIndex = 1;
+
+                //Main loop through columns
+                foreach (DataTable dt in myDataSet.Tables)
+                {
+                    foreach (DataColumn dc in dt.Columns)
+                    {
+                        if (dataTypes.Contains(dc.DataType))
+                        {
+                            if (dc.DataType.ToString() != typeof(char).ToString() && dc.DataType.ToString() != typeof(string).ToString())
+                            {
+                                //Block for calculating Mean.
+                                object meanObject;
+                                meanObject = dt.Compute("Avg(" + dc.ColumnName.ToString() + ")", string.Empty);
+                                double mean = Double.Parse(meanObject.ToString());
+
+                                //Check for missing values in this column
+                                int rowIndex = 0;
+                                int colNum = dt.Columns.IndexOf(dc);
+
+                                foreach (DataRow dr in dt.Rows)
+                                {
+                                    rowIndex++;
+                                    if (dr[colNum].ToString().Length == 0)
+                                    {
+                                        dr[colNum] = mean;
+                                    }
+                                    //Find corresponding cell in worksheet
+                                    var cell = ws.Cells[rowIndex, colIndex];
+
+                                    //Setting Value in cell
+                                    cell.Value = Convert.ToInt32(dr[dc.ColumnName]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            //Create and Save Excel file to client desktop
+            string path = Server.MapPath("~//Uploads/");
+            string fn = "Spreadsheet.xls";
+            string save = Server.MapPath(fn);
+
+            if (File.Exists(path + fn))
+            {
+                File.Delete(path + fn);
+            }
+            try
+            {
+                File.Create(save);
+            }
+            catch (Exception err)
+            {
+                UploadStatusLabel.Text = "File could not be uploaded because " + err + " exception caught.";
+            }
+
+            if (File.Exists(save))
+            {
+               UploadStatusLabel.Text = "File uploaded successfully.";
+            }
+            
         }
     }
 }
