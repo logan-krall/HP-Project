@@ -607,7 +607,7 @@ namespace HP_Analytics_Project.Images
                 //Main loop through columns
                 foreach (DataTable dt in myDataSet.Tables)
                 {   
-                    ws.InsertColumn(1, dt.Columns.Count);
+                    //ws.InsertColumn(1, dt.Columns.Count);
                     int colNum = 0;
 
                     foreach (DataColumn dc in dt.Columns)
@@ -682,7 +682,7 @@ namespace HP_Analytics_Project.Images
             Response.ContentType = "application/vnd.ms-excel";
             Response.AppendHeader("Content-Disposition", "attachment; filename=" + file);
             Response.TransmitFile(name);
-            Response.End();
+            Response.End();            
         }
     }
 }
