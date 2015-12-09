@@ -589,7 +589,8 @@ namespace HP_Analytics_Project.Images
             string file = "Spreadsheet" + DateTime.Now.ToString("yyyy-MM-dd--hh-mm-ss") + ".xls";
             name += file;
 
-            var fileStr = new FileInfo(name);
+            //var fileStr = new FileInfo(name);
+            var fileStr = new FileInfo(file);
 
             //Build a list of all acceptable data types for use in main loop type checking
             var dataTypes = new[] { typeof(Byte), typeof(SByte), typeof(Decimal), typeof(Double), typeof(Single), typeof(Int16), 
@@ -681,7 +682,8 @@ namespace HP_Analytics_Project.Images
 
             Response.ContentType = "application/vnd.ms-excel";
             Response.AppendHeader("Content-Disposition", "attachment; filename=" + file);
-            Response.TransmitFile(name);
+            //Response.TransmitFile(name);
+            Response.TransmitFile(file);
             Response.End();            
         }
     }
