@@ -587,9 +587,9 @@ namespace HP_Analytics_Project.Images
 
             string path = Environment.GetEnvironmentVariable("TEMP");
 
-            string name = Server.MapPath("/Uploads/");
+            //string name = Server.MapPath("/Uploads/");
             string file = "Spreadsheet" + DateTime.Now.ToString("yyyy-MM-dd--hh-mm-ss") + ".xls";
-            name += file;
+            //name += file;
             path += file;
 
             //var fileStr = new FileInfo(name);
