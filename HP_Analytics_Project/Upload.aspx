@@ -61,13 +61,17 @@
             
         </head>
         <body>            
-            
+        
         <% if ((bool)ViewState["missing"] == true) %>
         <% { %>
             <h3 style="color:red">Missing Row Values</h3> 
             <asp:Table ID="Table2" runat="server" Visible="true" HorizontalAlign="Center" BackColor="White" BorderStyle="Solid" BorderWidth="1"/>
             <p/><p/>
             ** Please resolve all instances of rows with missing values prior to submission for statistical analysis. **
+            <p /> <p />
+            
+            <p />
+            Click here to save a new copy of the spreadsheet in xls format with the missing values replaced by average or placeholder values. 
             <p />
             <asp:Button OnClick="saveButton_Click" id="saveButton" Text="Save New" runat="server" />
             <p />
