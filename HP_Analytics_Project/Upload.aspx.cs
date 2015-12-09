@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Net;
 
 //SQL Server
 using System.Data.SqlClient;
@@ -584,11 +585,17 @@ namespace HP_Analytics_Project.Images
         {
             DataSet myDataSet = Load_File(new DataSet());
 
+            string name = Server.MapPath("/Uploads/");
+            string file = "Spreadsheet" + DateTime.Now.ToString("yyyy-MM-dd--hh-mm-ss") + ".xls";
+            name += file;
+
+            var fileStr = new FileInfo(name);
+
             //Build a list of all acceptable data types for use in main loop type checking
             var dataTypes = new[] { typeof(Byte), typeof(SByte), typeof(Decimal), typeof(Double), typeof(Single), typeof(Int16), 
                 typeof(Int32), typeof(Int64), typeof(UInt16), typeof(UInt32), typeof(UInt64), typeof(Char), typeof(string) };
 
-            using (ExcelPackage p = new ExcelPackage())
+            using (ExcelPackage p = new ExcelPackage(fileStr))
             {
                 string sheetName = "New Sheet";
                 p.Workbook.Worksheets.Add(sheetName);
@@ -597,15 +604,23 @@ namespace HP_Analytics_Project.Images
                 ws.Cells.Style.Font.Size = 11; //Default font size for whole sheet
                 ws.Cells.Style.Font.Name = "Calibri"; //Default Font name for whole sheet
 
-                int colIndex = 1;
-
                 //Main loop through columns
                 foreach (DataTable dt in myDataSet.Tables)
-                {
+                {   
+                    ws.InsertColumn(1, dt.Columns.Count);
+                    int colNum = 0;
+
                     foreach (DataColumn dc in dt.Columns)
                     {
+                        colNum++;
+
                         if (dataTypes.Contains(dc.DataType))
                         {
+                            var hcell = ws.Cells[1, colNum];
+                            hcell.Value = dc.ColumnName;
+
+                            int rowIndex = 1;
+
                             if (dc.DataType.ToString() != typeof(char).ToString() && dc.DataType.ToString() != typeof(string).ToString())
                             {
                                 //Block for calculating Mean.
@@ -614,9 +629,6 @@ namespace HP_Analytics_Project.Images
                                 double mean = Double.Parse(meanObject.ToString());
 
                                 //Check for missing values in this column
-                                int rowIndex = 0;
-                                int colNum = dt.Columns.IndexOf(dc);
-
                                 foreach (DataRow dr in dt.Rows)
                                 {
                                     rowIndex++;
@@ -625,39 +637,52 @@ namespace HP_Analytics_Project.Images
                                         dr[colNum] = mean;
                                     }
                                     //Find corresponding cell in worksheet
-                                    var cell = ws.Cells[rowIndex, colIndex];
+                                    var cell = ws.Cells[rowIndex, colNum];
 
                                     //Setting Value in cell
-                                    cell.Value = Convert.ToInt32(dr[dc.ColumnName]);
+                                    //cell.Value = Convert.ToInt32(dr[dc.ColumnName]);
+                                    cell.Value = dr[dt.Columns.IndexOf(dc)];
                                 }
                             }
+                            else
+                            {
+                                //Check for missing values in this column
+                                foreach (DataRow dr in dt.Rows)
+                                {
+                                    rowIndex++;
+                                    //Find corresponding cell in worksheet
+                                    var cell = ws.Cells[rowIndex, colNum];
+
+                                    //Setting Value in cell
+                                    cell.Value = dr[dt.Columns.IndexOf(dc)];
+                                }
+                            }
+                            //-------- Now leaving if acceptable data type block
                         }
+                        //-------- Now leaving the for each datacolumns block    
                     }
+                    //-------- Now leaving the for each datatable block
                 }
-            }
-            //Create and Save Excel file to client desktop
-            string path = Server.MapPath("~//Uploads/");
-            string fn = "Spreadsheet.xls";
-            string save = Server.MapPath(fn);
-
-            if (File.Exists(path + fn))
-            {
-                File.Delete(path + fn);
-            }
-            try
-            {
-                File.Create(save);
-            }
-            catch (Exception err)
-            {
-                UploadStatusLabel.Text = "File could not be uploaded because " + err + " exception caught.";
+                p.Save();
+                //---------- Now leaving the using statement
             }
 
-            if (File.Exists(save))
-            {
-               UploadStatusLabel.Text = "File uploaded successfully.";
-            }
-            
+            //Create and Save Excel file to client desktop   
+            UploadStatusLabel.Text = "File download started.";
+
+            //string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            //string baseUrl = Request.Url.Scheme + "://" + Request.Url.Authority + Request.ApplicationPath.TrimEnd('/') + "/";
+
+            //Clear the response               
+            Response.Clear();
+            Response.ClearContent();
+            Response.ClearHeaders();
+            Response.Cookies.Clear();
+
+            Response.ContentType = "application/vnd.ms-excel";
+            Response.AppendHeader("Content-Disposition", "attachment; filename=" + file);
+            Response.TransmitFile(name);
+            Response.End();
         }
     }
 }
