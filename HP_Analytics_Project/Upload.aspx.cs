@@ -585,11 +585,15 @@ namespace HP_Analytics_Project.Images
         {
             DataSet myDataSet = Load_File(new DataSet());
 
+            string path = Environment.GetEnvironmentVariable("TEMP");
+
             string name = Server.MapPath("/Uploads/");
             string file = "Spreadsheet" + DateTime.Now.ToString("yyyy-MM-dd--hh-mm-ss") + ".xls";
             name += file;
+            path += file;
 
-            var fileStr = new FileInfo(name);
+            //var fileStr = new FileInfo(name);
+            var fileStr = new FileInfo(path);
 
             //Build a list of all acceptable data types for use in main loop type checking
             var dataTypes = new[] { typeof(Byte), typeof(SByte), typeof(Decimal), typeof(Double), typeof(Single), typeof(Int16), 
@@ -681,7 +685,8 @@ namespace HP_Analytics_Project.Images
 
             Response.ContentType = "application/vnd.ms-excel";
             Response.AppendHeader("Content-Disposition", "attachment; filename=" + file);
-            Response.TransmitFile(name);
+            //Response.TransmitFile(name);
+            Response.TransmitFile(path);
             Response.End();            
         }
     }
