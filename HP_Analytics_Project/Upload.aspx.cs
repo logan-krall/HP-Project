@@ -655,7 +655,7 @@ namespace HP_Analytics_Project.Images
                     }
                     //-------- Now leaving the for each datatable block
                 }
-                var stream = new MemoryStream();
+                var stream = new MemoryStream(p.GetAsByteArray());
                 p.SaveAs(stream);
                 stream.Position = 0;
                 //p.Save();            
