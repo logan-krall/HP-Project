@@ -584,15 +584,8 @@ namespace HP_Analytics_Project.Images
         protected void saveButton_Click(object sender, EventArgs e)
         {
             DataSet myDataSet = Load_File(new DataSet());
-
-            string path = Environment.GetEnvironmentVariable("TEMP");
-
-            //string name = Server.MapPath("/Uploads/");
             string file = "Spreadsheet" + DateTime.Now.ToString("yyyy-MM-dd--hh-mm-ss") + ".xls";
-            //name += file;
-            path += file;
-
-            //var fileStr = new FileInfo(name);
+            string path = Environment.GetEnvironmentVariable("TEMP") + file;
             var fileStr = new FileInfo(path);
 
             //Build a list of all acceptable data types for use in main loop type checking
@@ -601,28 +594,23 @@ namespace HP_Analytics_Project.Images
 
             using (ExcelPackage p = new ExcelPackage(fileStr))
             {
-                string sheetName = "New Sheet";
+                string sheetName = "First Sheet";
                 p.Workbook.Worksheets.Add(sheetName);
                 ExcelWorksheet ws = p.Workbook.Worksheets[1];
-                ws.Name = sheetName; //Setting Sheet's name
-                ws.Cells.Style.Font.Size = 11; //Default font size for whole sheet
-                ws.Cells.Style.Font.Name = "Calibri"; //Default Font name for whole sheet
+                ws.Cells.Style.Font.Size = 11;                  //Default font size for whole sheet
+                ws.Cells.Style.Font.Name = "Calibri";           //Default Font name for whole sheet
 
                 //Main loop through columns
                 foreach (DataTable dt in myDataSet.Tables)
                 {   
-                    //ws.InsertColumn(1, dt.Columns.Count);
                     int colNum = 0;
-
                     foreach (DataColumn dc in dt.Columns)
                     {
                         colNum++;
-
                         if (dataTypes.Contains(dc.DataType))
                         {
                             var hcell = ws.Cells[1, colNum];
                             hcell.Value = dc.ColumnName;
-
                             int rowIndex = 1;
 
                             if (dc.DataType.ToString() != typeof(char).ToString() && dc.DataType.ToString() != typeof(string).ToString())
@@ -644,7 +632,6 @@ namespace HP_Analytics_Project.Images
                                     var cell = ws.Cells[rowIndex, colNum];
 
                                     //Setting Value in cell
-                                    //cell.Value = Convert.ToInt32(dr[dc.ColumnName]);
                                     cell.Value = dr[dt.Columns.IndexOf(dc)];
                                 }
                             }
@@ -663,31 +650,40 @@ namespace HP_Analytics_Project.Images
                             }
                             //-------- Now leaving if acceptable data type block
                         }
+                        ws.Column(colNum).AutoFit();                               //Sit the column size to the data
                         //-------- Now leaving the for each datacolumns block    
                     }
                     //-------- Now leaving the for each datatable block
                 }
-                p.Save();
+                var stream = new MemoryStream();
+                p.SaveAs(stream);
+                stream.Position = 0;
+                //p.Save();            
+
+                //Create and Save Excel file to client desktop   
+                UploadStatusLabel.Text = "File download started.";
+
+                //Clear the response               
+                Response.Clear();
+                Response.ClearContent();
+                Response.ClearHeaders();
+                Response.Cookies.Clear();
+
+                Response.ContentType = "application/vnd.ms-excel";
+
+                //Response.AppendHeader("Content-Disposition", "attachment; filename=" + file);
+                Response.AddHeader("Content-Disposition", "attachment; filename=" + file);
+
+                //Response.TransmitFile(path);
+                Response.TransmitFile(file);
+                //Response.BinaryWrite(p.GetAsByteArray());
+
+                Response.End(); 
+
                 //---------- Now leaving the using statement
             }
 
-            //Create and Save Excel file to client desktop   
-            UploadStatusLabel.Text = "File download started.";
-
-            //string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            //string baseUrl = Request.Url.Scheme + "://" + Request.Url.Authority + Request.ApplicationPath.TrimEnd('/') + "/";
-
-            //Clear the response               
-            Response.Clear();
-            Response.ClearContent();
-            Response.ClearHeaders();
-            Response.Cookies.Clear();
-
-            Response.ContentType = "application/vnd.ms-excel";
-            Response.AppendHeader("Content-Disposition", "attachment; filename=" + file);
-            //Response.TransmitFile(name);
-            Response.TransmitFile(path);
-            Response.End();            
+                       
         }
     }
 }

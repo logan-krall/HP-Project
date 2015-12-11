@@ -23,7 +23,8 @@ namespace HP_Analytics_Project
                 Boolean fileOK = false;
                 string fn, save = String.Empty;
 
-                string path = Server.MapPath("~//Uploads/");
+                //string path = Server.MapPath("~//Uploads/");
+                string path = Environment.GetEnvironmentVariable("TEMP");
 
                 fn = System.IO.Path.GetFileName(FileUpload1.PostedFile.FileName);
                 save = Server.MapPath(fn);
