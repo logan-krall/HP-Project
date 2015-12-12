@@ -586,14 +586,12 @@ namespace HP_Analytics_Project.Images
             DataSet myDataSet = Load_File(new DataSet());
             string file = "Spreadsheet" + DateTime.Now.ToString("yyyy-MM-dd--hh-mm-ss") + ".xlsx";
             string path = Environment.GetEnvironmentVariable("TEMP") + file;
-            //var fileStr = new FileInfo(path);
             var stream = new MemoryStream();
 
             //Build a list of all acceptable data types for use in main loop type checking
             var dataTypes = new[] { typeof(Byte), typeof(SByte), typeof(Decimal), typeof(Double), typeof(Single), typeof(Int16), 
                 typeof(Int32), typeof(Int64), typeof(UInt16), typeof(UInt32), typeof(UInt64), typeof(Char), typeof(string) };
 
-            //using (ExcelPackage p = new ExcelPackage(fileStr))
             using (ExcelPackage p = new ExcelPackage(stream))
             {
                 string sheetName = "First Sheet";
@@ -605,49 +603,43 @@ namespace HP_Analytics_Project.Images
                 //Main loop through columns
                 foreach (DataTable dt in myDataSet.Tables)
                 {   
-                    int colNum = 0;
                     foreach (DataColumn dc in dt.Columns)
                     {
-                        colNum++;
+                        int colNum = dt.Columns.IndexOf(dc);
+
                         if (dataTypes.Contains(dc.DataType))
                         {
+                            double mean = 0;
+
                             if (dc.DataType.ToString() != typeof(char).ToString() && dc.DataType.ToString() != typeof(string).ToString())
                             {
                                 //Block for calculating Mean.
                                 object meanObject;
                                 meanObject = dt.Compute("Avg(" + dc.ColumnName.ToString() + ")", string.Empty);
-                                double mean = Double.Parse(meanObject.ToString());
+                                mean = Double.Parse(meanObject.ToString());
+                            }
 
-                                //Check for missing values in this column
-                                foreach (DataRow dr in dt.Rows)
+                            //Check for missing values in this column
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                if (dr[colNum].ToString().Length == 0)
                                 {
-                                    if (dr[colNum].ToString().Length == 0)
+                                    if (dc.DataType.ToString() != typeof(char).ToString() && dc.DataType.ToString() != typeof(string).ToString())
                                     {
                                         dr[colNum] = mean;
                                     }
+                                    else
+                                    {
+                                        dr[colNum] = "null";
+                                    }
                                 }
                             }
-                            else
-                            {
-                                //Check for missing values in this column
-                                foreach (DataRow dr in dt.Rows)
-                                {
-                                    
-                                }
-                            }
-                            //-------- Now leaving if acceptable data type block
                         }
                         //-------- Now leaving the for each datacolumns block    
                     }
                     ws.Cells["A1"].LoadFromDataTable(dt, true);
                     //-------- Now leaving the for each datatable block
-                }
-
-                 
-                //var stream = new MemoryStream(p.GetAsByteArray());
-                //p.SaveAs(stream);
-                //stream.Position = 0;
-                //p.Save();            
+                }     
 
                 //Create and Save Excel file to client desktop   
                 UploadStatusLabel.Text = "File download started.";
@@ -658,14 +650,8 @@ namespace HP_Analytics_Project.Images
                 Response.ClearHeaders();
                 Response.Cookies.Clear();
 
-                //Response.ContentType = "application/vnd.ms-excel";
                 Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-
-                //Response.AppendHeader("Content-Disposition", "attachment; filename=" + file);
                 Response.AddHeader("Content-Disposition", "attachment; filename=" + file);
-
-                //Response.TransmitFile(path);
-                //Response.TransmitFile(file);
                 Response.BinaryWrite(p.GetAsByteArray());
 
                 Response.End(); 

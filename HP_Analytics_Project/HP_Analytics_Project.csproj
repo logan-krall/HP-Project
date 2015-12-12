@@ -215,6 +215,10 @@
     <Content Include="Content\themes\base\tabs.css" />
     <Content Include="Content\themes\base\theme.css" />
     <Content Include="Content\themes\base\tooltip.css" />
+    <Content Include="Images\abacus_black.png" />
+    <Content Include="Images\abacus_white.png" />
+    <Content Include="Images\abacus_white1.png" />
+    <Content Include="Images\abacus_white2.png" />
     <Content Include="Images\accent.png" />
     <Content Include="Images\bullet.png" />
     <Content Include="Images\heroAccent.png" />
@@ -245,6 +249,7 @@
     <Content Include="Content\bootstrap.css.map" />
     <Content Include="Images\ordinary_lasso.png" />
     <Content Include="Images\ridge_regression.png" />
+    <Content Include="Images\Stop-Sign.png" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <None Include="Scripts\jquery-2.1.4.intellisense.js" />

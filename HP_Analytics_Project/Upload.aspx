@@ -6,7 +6,7 @@
     <section class="featured">
         <div class="content-wrapper">
             <hgroup class="title">
-                <h1>Abacus</h1>
+                 <img id="Img1" runat="server" src="../Images/abacus_white1.png" style="width:auto;height:70px;">
             </hgroup>
             <span style="color:#fff">This analytics application was written to prescreen data sets for statistical analysis and to help educate and explore different statistical model options in the pursuit of generating actionable data from big data sets. </span>
         </div>
@@ -64,14 +64,14 @@
         
         <% if ((bool)ViewState["missing"] == true) %>
         <% { %>
-            <h3 style="color:red">Missing Row Values</h3> 
+            <h3 style="color:red"><img id="Img2" runat="server" src="../Images/stop-sign.png" style="width:auto;height:25px;">Missing Row Values</h3> 
             <asp:Table ID="Table2" runat="server" Visible="true" HorizontalAlign="Center" BackColor="White" BorderStyle="Solid" BorderWidth="1"/>
             <p/><p/>
             ** Please resolve all instances of rows with missing values prior to submission for statistical analysis. **
             <p /> <p />
             
             <p />
-            Click here to save a new copy of the spreadsheet in xls format with the missing values replaced by average or placeholder values. 
+            Click here to save a new copy of the spreadsheet in xlsx format with the missing values replaced by average or placeholder values. 
             <p />
             <asp:Button OnClick="saveButton_Click" id="saveButton" Text="Save New" runat="server" />
             <p />

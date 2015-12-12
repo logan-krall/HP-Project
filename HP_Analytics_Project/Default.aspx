@@ -4,7 +4,7 @@
     <section class="featured">
         <div class="content-wrapper">
             <hgroup class="title">
-                <h1>Abacus</h1>
+                <img runat="server" src="../Images/abacus_white1.png" style="width:auto;height:70px;">
             </hgroup>
             <span style="color:#fff">This analytics application was written to prescreen data sets for statistical analysis and to help educate and explore different statistical model options in the pursuit of generating actionable data from big data sets. </span>
         </div>
