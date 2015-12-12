@@ -584,15 +584,17 @@ namespace HP_Analytics_Project.Images
         protected void saveButton_Click(object sender, EventArgs e)
         {
             DataSet myDataSet = Load_File(new DataSet());
-            string file = "Spreadsheet" + DateTime.Now.ToString("yyyy-MM-dd--hh-mm-ss") + ".xls";
+            string file = "Spreadsheet" + DateTime.Now.ToString("yyyy-MM-dd--hh-mm-ss") + ".xlsx";
             string path = Environment.GetEnvironmentVariable("TEMP") + file;
-            var fileStr = new FileInfo(path);
+            //var fileStr = new FileInfo(path);
+            var stream = new MemoryStream();
 
             //Build a list of all acceptable data types for use in main loop type checking
             var dataTypes = new[] { typeof(Byte), typeof(SByte), typeof(Decimal), typeof(Double), typeof(Single), typeof(Int16), 
                 typeof(Int32), typeof(Int64), typeof(UInt16), typeof(UInt32), typeof(UInt64), typeof(Char), typeof(string) };
 
-            using (ExcelPackage p = new ExcelPackage(fileStr))
+            //using (ExcelPackage p = new ExcelPackage(fileStr))
+            using (ExcelPackage p = new ExcelPackage(stream))
             {
                 string sheetName = "First Sheet";
                 p.Workbook.Worksheets.Add(sheetName);
@@ -609,10 +611,6 @@ namespace HP_Analytics_Project.Images
                         colNum++;
                         if (dataTypes.Contains(dc.DataType))
                         {
-                            var hcell = ws.Cells[1, colNum];
-                            hcell.Value = dc.ColumnName;
-                            int rowIndex = 1;
-
                             if (dc.DataType.ToString() != typeof(char).ToString() && dc.DataType.ToString() != typeof(string).ToString())
                             {
                                 //Block for calculating Mean.
@@ -623,16 +621,10 @@ namespace HP_Analytics_Project.Images
                                 //Check for missing values in this column
                                 foreach (DataRow dr in dt.Rows)
                                 {
-                                    rowIndex++;
                                     if (dr[colNum].ToString().Length == 0)
                                     {
                                         dr[colNum] = mean;
                                     }
-                                    //Find corresponding cell in worksheet
-                                    var cell = ws.Cells[rowIndex, colNum];
-
-                                    //Setting Value in cell
-                                    cell.Value = dr[dt.Columns.IndexOf(dc)];
                                 }
                             }
                             else
@@ -640,24 +632,21 @@ namespace HP_Analytics_Project.Images
                                 //Check for missing values in this column
                                 foreach (DataRow dr in dt.Rows)
                                 {
-                                    rowIndex++;
-                                    //Find corresponding cell in worksheet
-                                    var cell = ws.Cells[rowIndex, colNum];
-
-                                    //Setting Value in cell
-                                    cell.Value = dr[dt.Columns.IndexOf(dc)];
+                                    
                                 }
                             }
                             //-------- Now leaving if acceptable data type block
                         }
-                        ws.Column(colNum).AutoFit();                               //Sit the column size to the data
                         //-------- Now leaving the for each datacolumns block    
                     }
+                    ws.Cells["A1"].LoadFromDataTable(dt, true);
                     //-------- Now leaving the for each datatable block
                 }
-                var stream = new MemoryStream(p.GetAsByteArray());
-                p.SaveAs(stream);
-                stream.Position = 0;
+
+                 
+                //var stream = new MemoryStream(p.GetAsByteArray());
+                //p.SaveAs(stream);
+                //stream.Position = 0;
                 //p.Save();            
 
                 //Create and Save Excel file to client desktop   
@@ -669,14 +658,15 @@ namespace HP_Analytics_Project.Images
                 Response.ClearHeaders();
                 Response.Cookies.Clear();
 
-                Response.ContentType = "application/vnd.ms-excel";
+                //Response.ContentType = "application/vnd.ms-excel";
+                Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
                 //Response.AppendHeader("Content-Disposition", "attachment; filename=" + file);
                 Response.AddHeader("Content-Disposition", "attachment; filename=" + file);
 
                 //Response.TransmitFile(path);
-                Response.TransmitFile(file);
-                //Response.BinaryWrite(p.GetAsByteArray());
+                //Response.TransmitFile(file);
+                Response.BinaryWrite(p.GetAsByteArray());
 
                 Response.End(); 
 
