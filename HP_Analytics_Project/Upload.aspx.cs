@@ -256,6 +256,7 @@ namespace HP_Analytics_Project.Images
         {
             string fullName = (string)(Session["name"]);
             string extension = System.IO.Path.GetExtension(fullName).ToLower();
+            string path = Environment.GetEnvironmentVariable("TEMP");
             DataTable myDataTable = new DataTable();
 
             if (extension == ".xls" || extension == ".xlsx")
@@ -266,13 +267,13 @@ namespace HP_Analytics_Project.Images
                 if (extension == ".xls")
                 {
                     connectionString = "Provider=Microsoft.Jet.OLEDB.4.0;";
-                    connectionString += "Data Source='" + fullName + "';";
+                    connectionString += "Data Source='" + path + fullName + "';";
                     connectionString += "Extended Properties='Excel 8.0;HDR=YES;IMEX=1;READONLY=TRUE;';";
                 }
                 else if (extension == ".xlsx")
                 {
                     connectionString = "Provider=Microsoft.ACE.OLEDB.12.0;";
-                    connectionString += "Data Source='" + fullName + "';";
+                    connectionString += "Data Source='" + path + fullName + "';";
                     connectionString += "Extended Properties='Excel 12.0 Xml;HDR=YES';";
                 }
 

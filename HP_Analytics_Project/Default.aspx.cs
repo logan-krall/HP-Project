@@ -21,13 +21,8 @@ namespace HP_Analytics_Project
             if (IsPostBack)
             {
                 Boolean fileOK = false;
-                string fn, save = String.Empty;
-
-                //string path = Server.MapPath("~//Uploads/");
                 string path = Environment.GetEnvironmentVariable("TEMP");
-
-                fn = System.IO.Path.GetFileName(FileUpload1.PostedFile.FileName);
-                save = Server.MapPath(fn);
+                string fn = System.IO.Path.GetFileName(FileUpload1.PostedFile.FileName);
 
                 if (FileUpload1.HasFile)
                 {
@@ -54,8 +49,8 @@ namespace HP_Analytics_Project
 
                     try
                     {
-                        FileUpload1.PostedFile.SaveAs(save);
-                        Session["name"] = save;
+                        FileUpload1.PostedFile.SaveAs(path + fn);
+                        Session["name"] = fn;
 
                          UploadStatusLabel.Text = "File uploaded successfully.";
                     }
@@ -64,7 +59,7 @@ namespace HP_Analytics_Project
                         UploadStatusLabel.Text = "File could not be uploaded because " + err + " exception caught.";
                     }
 
-                    if (File.Exists(save))
+                    if (File.Exists(path + fn))
                     {
                         Server.Transfer("Upload.aspx", true);
                     }

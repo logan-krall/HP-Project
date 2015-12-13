@@ -46,3 +46,16 @@ C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Microsoft.As
 C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\obj\x86\Debug\HP_Analytics_Project.csprojResolveAssemblyReference.cache
 C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\obj\x86\Debug\HP_Analytics_Project.dll
 C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\obj\x86\Debug\HP_Analytics_Project.pdb
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Accord.dll.config
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Accord.dll
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Accord.IO.dll
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Accord.Math.dll
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Accord.Statistics.dll
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\DocumentFormat.OpenXml.dll
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\EPPlus.dll
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Accord.xml
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Accord.IO.xml
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Accord.Math.xml
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\Accord.Statistics.xml
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\DocumentFormat.OpenXml.xml
+C:\Users\Logan\Documents\GitHub\HP-Project\HP_Analytics_Project\bin\EPPlus.xml
