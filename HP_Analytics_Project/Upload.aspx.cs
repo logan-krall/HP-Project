@@ -38,6 +38,7 @@ using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 using System.Xml.Serialization;
+using System.Drawing;
 
 
 namespace HP_Analytics_Project.Images
@@ -499,16 +500,45 @@ namespace HP_Analytics_Project.Images
                 {
                     if (!(kp.Value == "i") && tc.Text == kp.Key)
                     {
+                        //Get the index of the column we're working on in the table
                         int index = CorrTable.Rows[0].Cells.GetCellIndex(tc);
+                        //Set the column name header cell to unbold
                         CorrTable.Rows[0].Cells[index].Font.Bold = false;
+                        if (kp.Value == "d")
+                        {
+                            CorrTable.Rows[0].Cells[index].Font.Italic = true;
+                            CorrTable.Rows[0].Cells[index].Font.Bold = false;
+                        }
+                        else
+                        {
+                            CorrTable.Rows[0].Cells[index].Font.Italic = false;
+                        }
 
+                        //Uses the column index to unbold the horizontal row
                         for (int i = 0; i <= index; i++)
                         {
                             CorrTable.Rows[index].Cells[i].Font.Bold = false;
+                            
+                            //Skips the first row name cell
+                            if (i > 0)
+                            {
+                                CorrTable.Rows[index].Cells[i].BackColor = System.Drawing.Color.White;
+                            }
+                            else if (kp.Value == "d")
+                            {
+                                CorrTable.Rows[index].Cells[0].Font.Italic = true;
+                                CorrTable.Rows[index].Cells[0].Font.Bold = false;
+                            }
+                            else
+                            {
+                                CorrTable.Rows[index].Cells[0].Font.Italic = false;
+                            }
                         }
+                        //Uses the column index to unbold the vertical cells in the column
                         for (int i = index; i < CorrTable.Rows.Count; i++)
                         {
                             CorrTable.Rows[i].Cells[index].Font.Bold = false;
+                            CorrTable.Rows[i].Cells[index].BackColor = System.Drawing.Color.White;
                         }
 
                     }
@@ -520,18 +550,74 @@ namespace HP_Analytics_Project.Images
                 {
                     if (kp.Value == "i" && tc.Text == kp.Key)
                     {
-                            int index = CorrTable.Rows[0].Cells.GetCellIndex(tc);
-                            CorrTable.Rows[0].Cells[index].Font.Bold = true;
+                        //Get the index of the column we're working on in the table
+                        int index = CorrTable.Rows[0].Cells.GetCellIndex(tc);
+                        //Set the column name header cell to bold
+                        CorrTable.Rows[0].Cells[index].Font.Bold = true;
+                            
+                        //Uses the column index to bold the horizontal row
+                        for (int i = 0; i <= index; i++)
+                        {
+                            CorrTable.Rows[index].Cells[i].Font.Bold = true;
+                            //Skips the first row name cell
+                            if (i > 0)
+                            {
+                                var cell = CorrTable.Rows[index].Cells[i];
+                                double value = Convert.ToDouble(cell.Text.ToString());
+                                var hcell = CorrTable.Rows[0].Cells[i];
 
-                            for (int i = 0; i <= index; i++)
-                            {
-                                CorrTable.Rows[index].Cells[i].Font.Bold = true;
+                                if (hcell.Font.Bold == true && value != 1)
+                                {
+                                    value = 1 - value;
+                                }
+
+                                if (value >= 0.65 || (hcell.Font.Italic == false && hcell.Font.Bold == false))
+                                {
+                                    //green
+                                    cell.BackColor = System.Drawing.Color.FromArgb(255, 80, 225, 40);
+                                }
+                                else if (value < 0.65 && value >= 0.35)
+                                {
+                                    //yellow
+                                    cell.BackColor = System.Drawing.Color.FromArgb(255, 255, 255, 0);
+                                }
+                                else
+                                {
+                                    //red
+                                    cell.BackColor = System.Drawing.Color.FromArgb(255, 255, 20, 20);
+                                }
                             }
-                            for (int i = index; i < CorrTable.Rows.Count; i++)
+                        }
+                        //Uses the column index to bold the vertical cells in the column
+                        for (int i = index; i < CorrTable.Rows.Count; i++)
+                        {
+                            var cell = CorrTable.Rows[i].Cells[index];
+                            double value = Convert.ToDouble(cell.Text.ToString());
+                            cell.Font.Bold = true;
+                            var hcell = CorrTable.Rows[i].Cells[0];
+
+                            if (hcell.Font.Bold == true && value != 1)
                             {
-                                CorrTable.Rows[i].Cells[index].Font.Bold = true;
+                                value = 1 - value;
                             }
-                        
+
+                            if (value >= 0.65 || (hcell.Font.Italic == false && hcell.Font.Bold == false))
+                            {
+                                //green
+                                cell.BackColor = System.Drawing.Color.FromArgb(255, 80, 225, 40);
+
+                            }
+                            else if (value < 0.65 && value >= 0.35)
+                            {
+                                //yellow
+                                cell.BackColor = System.Drawing.Color.FromArgb(255, 255, 255, 0);
+                            }
+                            else
+                            {
+                                //red
+                                cell.BackColor = System.Drawing.Color.FromArgb(255, 255, 20, 20);
+                            }
+                        }
                     }
                 }
             }            

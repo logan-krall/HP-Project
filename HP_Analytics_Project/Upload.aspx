@@ -64,7 +64,7 @@
         
         <% if ((bool)ViewState["missing"] == true) %>
         <% { %>
-            <h3 style="color:red"><img id="Img2" runat="server" src="../Images/stop-sign.png" style="width:auto;height:25px;">Missing Row Values</h3> 
+            <h3 style="color:red"><img id="Img2" runat="server" src="../Images/missing_values.png" style="width:auto;height:30px;"></h3> 
             <asp:Table ID="Table2" runat="server" Visible="true" HorizontalAlign="Center" BackColor="White" BorderStyle="Solid" BorderWidth="1"/>
             <p/><p/>
             ** Please resolve all instances of rows with missing values prior to submission for statistical analysis. **

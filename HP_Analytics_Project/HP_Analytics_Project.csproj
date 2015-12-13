@@ -226,6 +226,7 @@
     <Content Include="Images\hpLogo.png" />
     <Content Include="Images\lin-reg.png" />
     <Content Include="Images\logit-reg.png" />
+    <Content Include="Images\missing_values.png" />
     <Content Include="Images\mult-reg.png" />
     <Content Include="Images\orderedList0.png" />
     <Content Include="Images\orderedList1.png" />
