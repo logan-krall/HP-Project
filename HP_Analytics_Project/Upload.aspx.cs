@@ -85,7 +85,7 @@ namespace HP_Analytics_Project.Images
                         TableCell stdCell = new TableCell();
                         TableCell dependCell = new TableCell();
                         TableCell nameCell = new TableCell();
-                        TableCell varTCell = new TableCell();
+                        //TableCell varTCell = new TableCell();
                         TableCell cardCell = new TableCell();
 
                         //Start Dependency Radio List
@@ -144,6 +144,7 @@ namespace HP_Analytics_Project.Images
                         {
                             varType = "Numeric";
 
+                            //total numeric variable counter
                             int num = (int)ViewState["num_numeric"];
                             ViewState["num_numeric"] = ++num;
 
@@ -167,28 +168,28 @@ namespace HP_Analytics_Project.Images
                             maxObject = dt.Compute("Max(" + dc.ColumnName.ToString() + ")", string.Empty);
                             max = Double.Parse(maxObject.ToString());
 
-                            meanCell.Text = mean.ToString("0.#####");
-                            minCell.Text = min.ToString("0.#####");
-                            maxCell.Text = max.ToString("0.#####");
-                            stdCell.Text = stdD.ToString("0.#####");
+                            meanCell.Text = mean.ToString("0.###");
+                            minCell.Text = min.ToString("0.###");
+                            maxCell.Text = max.ToString("0.###");
+                            stdCell.Text = stdD.ToString("0.###");
                         }
 
                         varName = dc.ColumnName.ToString();
                         nameCell.Text = varName;
                         cardCell.Text = uniqueVals;
-                        varTCell.Text = varType;
+                        //varTCell.Text = varType;
 
                         dependCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
                         dependCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
                         nameCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
                         nameCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
-                        varTCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
-                        varTCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
+                        //varTCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
+                        //varTCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
                         cardCell.BorderStyle = System.Web.UI.WebControls.BorderStyle.Solid;
                         cardCell.BorderWidth = System.Web.UI.WebControls.Unit.Pixel(1);
                         tRow.Cells.Add(dependCell);
                         tRow.Cells.Add(nameCell);
-                        tRow.Cells.Add(varTCell);
+                        //tRow.Cells.Add(varTCell);
 
                         if (varType == "Numeric")
                         {
@@ -341,7 +342,7 @@ namespace HP_Analytics_Project.Images
 
             TableCell dependH = new TableCell();
             TableCell nameCellH = new TableCell();
-            TableCell varTCellH = new TableCell();
+            //TableCell varTCellH = new TableCell();
             TableCell meanCellH = new TableCell();
             TableCell medCellH = new TableCell();
             TableCell moCellH = new TableCell();
@@ -350,7 +351,7 @@ namespace HP_Analytics_Project.Images
 
             dependH.Text = "Variable Dependency";
             nameCellH.Text = "Name";
-            varTCellH.Text = "Type";
+            //varTCellH.Text = "Type";
             meanCellH.Text = "Mean";
             medCellH.Text = "Min";
             moCellH.Text = "Max";
@@ -359,7 +360,7 @@ namespace HP_Analytics_Project.Images
 
             hRow.Cells.Add(dependH); ;
             hRow.Cells.Add(nameCellH);
-            hRow.Cells.Add(varTCellH);
+            //hRow.Cells.Add(varTCellH);
             hRow.Cells.Add(meanCellH);
             hRow.Cells.Add(medCellH);
             hRow.Cells.Add(moCellH);
