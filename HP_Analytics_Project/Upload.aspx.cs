@@ -374,17 +374,17 @@ namespace HP_Analytics_Project.Images
 
             TableCell dependH2 = new TableCell();
             TableCell nameCellH2 = new TableCell();
-            TableCell varTCellH2 = new TableCell();
+            //TableCell varTCellH2 = new TableCell();
             TableCell cardCellH2 = new TableCell();
 
             dependH2.Text = "Variable Dependency";
             nameCellH2.Text = "Name";
-            varTCellH2.Text = "Type";
+            //varTCellH2.Text = "Type";
             cardCellH2.Text = "Cardinality";
 
             hRow4.Cells.Add(dependH2); ;
             hRow4.Cells.Add(nameCellH2);
-            hRow4.Cells.Add(varTCellH2);
+            //hRow4.Cells.Add(varTCellH2);
             hRow4.Cells.Add(cardCellH2);
 
             Table3.Rows.Add(hRow4);
